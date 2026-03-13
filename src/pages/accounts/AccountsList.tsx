@@ -18,7 +18,7 @@ export default function AccountsList() {
           className="flex items-center gap-3 hover:text-primary font-medium transition-colors"
         >
           <img
-            src={acc.logo}
+            src={acc.logo || 'https://img.usecurling.com/i?q=company&shape=fill&color=gray'}
             alt={acc.name}
             className="w-8 h-8 rounded-md bg-white border object-contain p-1"
           />
@@ -26,13 +26,17 @@ export default function AccountsList() {
         </Link>
       ),
     },
-    { key: 'segment', label: 'Segmento' },
     {
-      key: 'tier',
+      key: 'segment',
+      label: 'Segmento',
+      render: (val: string) => <span className="capitalize">{val}</span>,
+    },
+    {
+      key: 'accountTier',
       label: 'Tier',
       render: (val: string) => (
-        <Badge variant="outline" className="font-mono">
-          {val}
+        <Badge variant="outline" className="font-mono capitalize">
+          {val || '-'}
         </Badge>
       ),
     },
@@ -41,8 +45,10 @@ export default function AccountsList() {
       label: 'Status',
       render: (val: string) => (
         <Badge
-          variant={val === 'Ativo' ? 'default' : 'secondary'}
-          className={val === 'Ativo' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
+          variant={val === 'ativa' ? 'default' : 'secondary'}
+          className={
+            val === 'ativa' ? 'bg-emerald-500 hover:bg-emerald-600 capitalize' : 'capitalize'
+          }
         >
           {val}
         </Badge>

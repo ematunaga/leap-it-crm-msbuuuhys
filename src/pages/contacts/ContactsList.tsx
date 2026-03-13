@@ -12,7 +12,11 @@ export default function ContactsList() {
       label: 'Contato',
       render: (_: any, c: Contact) => (
         <div className="flex items-center gap-3">
-          <img src={c.avatar} alt={c.name} className="w-10 h-10 rounded-full bg-muted border" />
+          <img
+            src={c.avatarUrl}
+            alt={c.name}
+            className="w-10 h-10 rounded-full bg-muted border object-cover"
+          />
           <div>
             <div className="font-medium">{c.name}</div>
             <div className="text-xs text-muted-foreground">{c.email}</div>
@@ -25,11 +29,15 @@ export default function ContactsList() {
       label: 'Conta',
       render: (id: string) => accounts.find((a) => a.id === id)?.name || '-',
     },
-    { key: 'role', label: 'Cargo' },
+    { key: 'position', label: 'Cargo' },
     {
-      key: 'influence',
+      key: 'influenceLevelGlobal',
       label: 'Influência',
-      render: (val: string) => <Badge variant="secondary">{val}</Badge>,
+      render: (val: string) => (
+        <Badge variant="secondary" className="capitalize">
+          {val || 'Desconhecida'}
+        </Badge>
+      ),
     },
   ]
 

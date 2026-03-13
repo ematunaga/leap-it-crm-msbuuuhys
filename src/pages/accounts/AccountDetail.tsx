@@ -21,15 +21,22 @@ export default function AccountDetail() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-4 border-b pb-6">
         <img
-          src={account.logo}
+          src={account.logo || 'https://img.usecurling.com/i?q=company&shape=fill&color=gray'}
           alt={account.name}
           className="w-16 h-16 rounded-xl border bg-white p-2 object-contain shadow-sm"
         />
         <div>
           <h1 className="text-3xl font-bold">{account.name}</h1>
           <div className="flex gap-2 mt-2">
-            <Badge variant="outline">{account.segment}</Badge>
-            <Badge variant="secondary">Tier {account.tier}</Badge>
+            <Badge variant="outline" className="capitalize">
+              {account.segment}
+            </Badge>
+            <Badge variant="secondary" className="capitalize">
+              Tier {account.accountTier}
+            </Badge>
+            <Badge variant="outline" className="capitalize bg-muted">
+              {account.status}
+            </Badge>
           </div>
         </div>
       </div>
@@ -47,14 +54,24 @@ export default function AccountDetail() {
             <CardHeader>
               <CardTitle>Dados Básicos</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <p className="font-medium">{account.status}</p>
+                <p className="text-sm text-muted-foreground">Saúde da Conta</p>
+                <p className="font-medium capitalize">{account.accountHealth || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Relacionamento</p>
+                <p className="font-medium capitalize">
+                  {account.relationshipStatus?.replace('_', ' ') || '-'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Porte</p>
+                <p className="font-medium capitalize">{account.porte || '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Última Interação</p>
-                <p className="font-medium">{formatDate(account.lastInteractionAt)}</p>
+                <p className="font-medium">{formatDate(account.lastInteractionAt || '')}</p>
               </div>
             </CardContent>
           </Card>
@@ -64,13 +81,19 @@ export default function AccountDetail() {
           <div className="grid gap-4 md:grid-cols-2">
             {accContacts.map((c) => (
               <Card key={c.id} className="shadow-subtle flex items-center p-4 gap-4">
-                <img src={c.avatar} className="w-12 h-12 rounded-full bg-muted" alt={c.name} />
+                <img
+                  src={c.avatarUrl}
+                  className="w-12 h-12 rounded-full bg-muted object-cover"
+                  alt={c.name}
+                />
                 <div>
                   <p className="font-bold">{c.name}</p>
-                  <p className="text-sm text-muted-foreground">{c.role}</p>
-                  <Badge variant="outline" className="mt-1 text-xs">
-                    {c.influence}
-                  </Badge>
+                  <p className="text-sm text-muted-foreground">{c.position}</p>
+                  <div className="flex gap-1 mt-1">
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {c.influenceLevelGlobal || 'Influência Desconhecida'}
+                    </Badge>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -113,7 +136,7 @@ export default function AccountDetail() {
             </CardHeader>
             <CardContent>
               <Textarea
-                defaultValue={account.whiteSpace}
+                defaultValue={account.whiteSpaceNotes}
                 rows={6}
                 className="bg-muted/50"
                 placeholder="Anotações estratégicas sobre potencial da conta..."

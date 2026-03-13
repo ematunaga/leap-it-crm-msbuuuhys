@@ -5,6 +5,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import useCrmStore from '@/stores/useCrmStore'
 import { formatMoney } from '@/lib/utils'
 import NotFound from '../NotFound'
@@ -28,12 +35,14 @@ export default function OpportunityDetail() {
         <div className="text-right">
           <div className="text-2xl font-bold">{formatMoney(opp.value)}</div>
           <div className="flex justify-end gap-2 mt-2">
-            <Badge variant="outline">{opp.stage}</Badge>
+            <Badge variant="outline" className="capitalize">
+              {opp.stage.replace('_', ' ')}
+            </Badge>
             <Badge
               className={
-                opp.temperature === 'Quente'
+                opp.temperature === 'quente'
                   ? 'bg-rose-500'
-                  : opp.temperature === 'Morna'
+                  : opp.temperature === 'morna'
                     ? 'bg-amber-500'
                     : 'bg-blue-500'
               }
@@ -47,75 +56,144 @@ export default function OpportunityDetail() {
       <Tabs defaultValue="meddic" className="w-full">
         <TabsList className="bg-muted">
           <TabsTrigger value="info">Detalhes Gerais</TabsTrigger>
-          <TabsTrigger value="meddic">Qualificação MEDDIC</TabsTrigger>
+          <TabsTrigger value="meddic">Qualificação MEDDPICC</TabsTrigger>
           <TabsTrigger value="committee">Comitê de Compra</TabsTrigger>
         </TabsList>
 
         <TabsContent value="meddic" className="mt-4">
           <Card className="shadow-subtle">
             <CardHeader>
-              <CardTitle>Framework MEDDIC</CardTitle>
+              <CardTitle>Framework de Qualificação</CardTitle>
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label>M - Metrics (Métricas de Sucesso)</Label>
+                <Label>Pain (Dor Identificada)</Label>
+                <Textarea defaultValue={opp.identifiedPain} placeholder="Qual a dor principal?" />
+              </div>
+              <div className="space-y-2">
+                <Label>Metrics / Business Impact</Label>
                 <Textarea
-                  defaultValue={opp.meddic.metrics}
+                  defaultValue={opp.businessImpact}
                   placeholder="Quais os ganhos mensuráveis?"
                 />
               </div>
               <div className="space-y-2">
-                <Label>E - Economic Buyer (Comprador Econômico)</Label>
-                <Input
-                  defaultValue={opp.meddic.economicBuyer}
-                  placeholder="Quem assina o cheque?"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>D - Decision Criteria (Critérios de Decisão)</Label>
+                <Label>Decision Criteria (Critérios de Decisão)</Label>
                 <Textarea
-                  defaultValue={opp.meddic.decisionCriteria}
+                  defaultValue={opp.decisionCriteria}
                   placeholder="Como eles avaliam a solução?"
                 />
               </div>
               <div className="space-y-2">
-                <Label>D - Decision Process (Processo de Decisão)</Label>
+                <Label>Decision Process (Processo de Decisão)</Label>
                 <Textarea
-                  defaultValue={opp.meddic.decisionProcess}
+                  defaultValue={opp.decisionProcess}
                   placeholder="Quais os passos até a compra?"
                 />
               </div>
               <div className="space-y-2">
-                <Label>I - Identify Pain (Dor Identificada)</Label>
-                <Textarea
-                  defaultValue={opp.meddic.identifyPain}
-                  placeholder="Qual o problema principal?"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>C - Champion (Campeão)</Label>
-                <Input
-                  defaultValue={opp.meddic.champion}
-                  placeholder="Quem nos defende lá dentro?"
-                />
+                <Label>Status de Orçamento (Budget)</Label>
+                <Select defaultValue={opp.budgetStatus || 'nao_confirmado'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nao_confirmado">Não Confirmado</SelectItem>
+                    <SelectItem value="parcialmente_confirmado">Parcialmente Confirmado</SelectItem>
+                    <SelectItem value="confirmado">Confirmado</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="info" className="mt-4">
+        <TabsContent value="committee" className="mt-4">
+          <Card className="shadow-subtle">
+            <CardHeader>
+              <CardTitle>Análise do Comitê de Compra</CardTitle>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label>Champion (Campeão)</Label>
+                <Select defaultValue={opp.championStatus || 'nao_identificado'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nao_identificado">Não Identificado</SelectItem>
+                    <SelectItem value="identificado">Identificado</SelectItem>
+                    <SelectItem value="confirmado">Confirmado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Economic Buyer (Comprador Econômico)</Label>
+                <Select defaultValue={opp.economicBuyerStatus || 'nao_identificado'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nao_identificado">Não Identificado</SelectItem>
+                    <SelectItem value="identificado">Identificado</SelectItem>
+                    <SelectItem value="confirmado">Confirmado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Decision Maker (Tomador de Decisão)</Label>
+                <Select defaultValue={opp.decisionMakerStatus || 'nao_identificado'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nao_identificado">Não Identificado</SelectItem>
+                    <SelectItem value="identificado">Identificado</SelectItem>
+                    <SelectItem value="confirmado">Confirmado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="info" className="mt-4 space-y-4">
           <Card className="shadow-subtle">
             <CardHeader>
               <CardTitle>Próximos Passos</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 max-w-xl">
+            <CardContent className="grid grid-cols-2 gap-4 max-w-xl">
               <div className="space-y-2">
-                <Label>Ação</Label>
+                <Label>Ação Pendente</Label>
                 <Input defaultValue={opp.nextStep} />
               </div>
               <div className="space-y-2">
                 <Label>Data Prevista</Label>
                 <Input type="date" defaultValue={opp.nextStepDate} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-subtle">
+            <CardHeader>
+              <CardTitle>Detalhes Comerciais</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label>Moeda</Label>
+                <Input readOnly value={opp.currency} className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <Label>Tipo de Venda</Label>
+                <Input
+                  readOnly
+                  value={opp.saleType.replace('_', ' ')}
+                  className="bg-muted capitalize"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Parceiro</Label>
+                <Input readOnly value={opp.partner} className="bg-muted uppercase" />
               </div>
             </CardContent>
           </Card>

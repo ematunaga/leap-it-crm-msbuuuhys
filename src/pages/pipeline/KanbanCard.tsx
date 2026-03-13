@@ -10,16 +10,16 @@ export function KanbanCard({ opp }: { opp: Opportunity }) {
   }
 
   const bgColors = {
-    Fria: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
-    Morna: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
-    Quente: 'bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800',
+    fria: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
+    morna: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
+    quente: 'bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800',
   }
 
   return (
     <div
       draggable
       onDragStart={handleDragStart}
-      className={`p-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing shadow-subtle hover:shadow-elevation transition-all ${bgColors[opp.temperature]}`}
+      className={`p-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing shadow-subtle hover:shadow-elevation transition-all ${bgColors[opp.temperature] || 'bg-background'}`}
     >
       <Link
         to={`/oportunidades/${opp.id}`}

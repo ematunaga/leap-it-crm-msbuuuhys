@@ -26,7 +26,7 @@ export default function ActivitiesList() {
         if (a.relatedTo === 'Opportunity')
           name = opps.find((o) => o.id === a.relatedId)?.title || ''
         if (a.relatedTo === 'Account')
-          name = accounts.find((ac) => (acc) => acc.id === a.relatedId)?.name || ''
+          name = accounts.find((ac) => ac.id === a.relatedId)?.name || ''
         return (
           <span className="text-sm truncate max-w-[200px] inline-block">
             {a.relatedTo}: {name}

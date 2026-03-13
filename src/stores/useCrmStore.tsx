@@ -43,11 +43,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [competitors] = useState<Competitor[]>(mockCompetitors)
   const [contracts] = useState<Contract[]>(mockContracts)
 
-  // Run core automations on mount
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
 
-    // Automation: Flag overdue activities and opps
     setActivities((prev) =>
       prev.map((a) => (a.status === 'Pendente' && a.date < today ? { ...a, isOverdue: true } : a)),
     )
@@ -67,19 +65,17 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     const newAct = { ...act, id: Math.random().toString(36).substr(2, 9) } as Activity
     setActivities((prev) => [newAct, ...prev])
 
-    // Automation: Temperature Logic & Next Step Sync
     if (act.relatedTo === 'Opportunity') {
       setOpps((prev) =>
         prev.map((o) => {
           if (o.id === act.relatedId) {
             let newTemp = o.temperature
-            if (act.outcome === 'Positivo') newTemp = 'Quente'
-            if (act.outcome === 'Neutro') newTemp = 'Morna'
+            if (act.outcome === 'Positivo') newTemp = 'quente'
+            if (act.outcome === 'Neutro') newTemp = 'morna'
 
             return {
               ...o,
               temperature: newTemp,
-              // Sync next step if it's a future activity
               ...(act.status === 'Pendente'
                 ? { nextStep: act.summary, nextStepDate: act.date }
                 : {}),
@@ -90,7 +86,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       )
     }
 
-    // Automation: Last Interaction Sync
     if (act.status === 'Concluída' && act.relatedTo === 'Account') {
       setAccounts((prev) =>
         prev.map((a) => (a.id === act.relatedId ? { ...a, lastInteractionAt: act.date } : a)),

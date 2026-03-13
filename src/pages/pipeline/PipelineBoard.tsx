@@ -1,15 +1,25 @@
 import { useState } from 'react'
 import useCrmStore from '@/stores/useCrmStore'
 import { KanbanCard } from './KanbanCard'
+import { Opportunity } from '@/types'
 
-const STAGES = [
-  'Prospecção',
-  'Qualificação',
-  'Proposta',
-  'Negociação',
-  'Fechado Ganho',
-  'Fechado Perdido',
-] as const
+const STAGES: Opportunity['stage'][] = [
+  'prospeccao',
+  'qualificacao',
+  'proposta_enviada',
+  'negociacao',
+  'ganho',
+  'perdido',
+]
+
+const stageLabels: Record<Opportunity['stage'], string> = {
+  prospeccao: 'Prospecção',
+  qualificacao: 'Qualificação',
+  proposta_enviada: 'Proposta Enviada',
+  negociacao: 'Negociação',
+  ganho: 'Fechado Ganho',
+  perdido: 'Fechado Perdido',
+}
 
 export default function PipelineBoard() {
   const { opps, updateOppStage } = useCrmStore()
@@ -29,6 +39,7 @@ export default function PipelineBoard() {
           <KanbanColumn
             key={stage}
             stage={stage}
+            label={stageLabels[stage]}
             items={opps.filter((o) => o.stage === stage)}
             onDrop={(id) => updateOppStage(id, stage)}
           />
@@ -40,10 +51,12 @@ export default function PipelineBoard() {
 
 function KanbanColumn({
   stage,
+  label,
   items,
   onDrop,
 }: {
   stage: string
+  label: string
   items: any[]
   onDrop: (id: string) => void
 }) {
@@ -71,7 +84,7 @@ function KanbanColumn({
       onDrop={handleDrop}
     >
       <div className="p-3 font-semibold border-b bg-muted/80 rounded-t-xl flex justify-between items-center">
-        <span>{stage}</span>
+        <span>{label}</span>
         <span className="text-xs font-mono bg-background px-2 py-0.5 rounded-full border">
           {items.length}
         </span>
