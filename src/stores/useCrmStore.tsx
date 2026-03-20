@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react'
-import { Account, Activity, Competitor, Contact, Contract, Lead, Opportunity } from '@/types'
+import {
+  Account,
+  Activity,
+  Competitor,
+  Contact,
+  Contract,
+  Lead,
+  Opportunity,
+  AccessProfile,
+} from '@/types'
 import {
   mockAccounts,
   mockActivities,
@@ -8,6 +17,7 @@ import {
   mockLeads,
   mockCompetitors,
   mockContracts,
+  mockProfiles,
 } from '@/lib/mock-data'
 
 interface CrmStore {
@@ -18,6 +28,7 @@ interface CrmStore {
   leads: Lead[]
   competitors: Competitor[]
   contracts: Contract[]
+  profiles: AccessProfile[]
   updateOppStage: (id: string, stage: string) => void
   addActivity: (activity: Omit<Activity, 'id'>) => void
   updateActivity: (id: string, updates: Partial<Activity>) => void
@@ -27,6 +38,8 @@ interface CrmStore {
   updateContact: (id: string, updates: Partial<Contact>) => void
   addOpportunity: (opp: Omit<Opportunity, 'id'>) => void
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
+  addProfile: (profile: Omit<AccessProfile, 'id'>) => void
+  updateProfile: (id: string, updates: Partial<AccessProfile>) => void
 }
 
 const CrmContext = createContext<CrmStore | null>(null)
@@ -39,6 +52,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [leads, setLeads] = useState<Lead[]>(mockLeads)
   const [competitors, setCompetitors] = useState<Competitor[]>(mockCompetitors)
   const [contracts, setContracts] = useState<Contract[]>(mockContracts)
+  const [profiles, setProfiles] = useState<AccessProfile[]>(mockProfiles)
 
   useEffect(() => {
     const today = new Date()
@@ -95,6 +109,14 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     setActivities((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)))
   }
 
+  const updateProfile = (id: string, updates: Partial<AccessProfile>) => {
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
+      ),
+    )
+  }
+
   const addAccount = (acc: Omit<Account, 'id'>) => {
     const newAcc = { ...acc, id: Math.random().toString(36).substr(2, 9) } as Account
     setAccounts((prev) => [newAcc, ...prev])
@@ -114,6 +136,15 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       daysInStage: 0,
     } as Opportunity
     setOpps((prev) => [newOpp, ...prev])
+  }
+
+  const addProfile = (profile: Omit<AccessProfile, 'id'>) => {
+    const newProfile = {
+      ...profile,
+      id: Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString(),
+    } as AccessProfile
+    setProfiles((prev) => [newProfile, ...prev])
   }
 
   const addActivity = (act: Omit<Activity, 'id'>) => {
@@ -171,6 +202,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       leads,
       competitors,
       contracts,
+      profiles,
       updateOppStage,
       addActivity,
       updateActivity,
@@ -180,8 +212,10 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       addContact,
       updateContact,
       addOpportunity,
+      addProfile,
+      updateProfile,
     }),
-    [accounts, contacts, opps, activities, leads, competitors, contracts],
+    [accounts, contacts, opps, activities, leads, competitors, contracts, profiles],
   )
 
   return <CrmContext.Provider value={value}>{children}</CrmContext.Provider>

@@ -247,7 +247,7 @@ export interface Activity {
   updatedAt?: string
   notes?: string
 
-  // Legacy fields mapped dynamically or kept for backwards compatibility where necessary
+  // Legacy fields
   relatedTo?: string
   relatedId?: string
   date?: string
@@ -286,4 +286,48 @@ export interface Proposal {
   value: number
   expiresAt: string
   status: string
+}
+
+export interface PermissionScope {
+  visualizar?: boolean
+  criar?: boolean
+  editar?: boolean
+  excluir?: boolean
+  escopo?: 'tudo' | 'proprio' | 'equipe' | string
+}
+
+export interface PermissionsMatrix {
+  dashboard?: { visualizar?: boolean }
+  leads?: PermissionScope
+  opportunities?: PermissionScope
+  contacts?: PermissionScope
+  accounts?: PermissionScope
+  proposals?: PermissionScope
+  tickets?: PermissionScope
+  campaigns?: Omit<PermissionScope, 'escopo'>
+  competitors?: Omit<PermissionScope, 'escopo'>
+  distributors?: Omit<PermissionScope, 'escopo'>
+  reports?: { visualizar?: boolean; exportar?: boolean }
+  settings?: { visualizar?: boolean; gerenciar_perfis?: boolean; gerenciar_usuarios?: boolean }
+  avancadas?: {
+    visualizar_valores_financeiros?: boolean
+    exportar_dados?: boolean
+    acessar_relatorios_avancados?: boolean
+    gerenciar_tags?: boolean
+    visualizar_auditoria?: boolean
+    atribuir_registros?: boolean
+    excluir_em_massa?: boolean
+    importar_dados?: boolean
+  }
+}
+
+export interface AccessProfile {
+  id: string
+  name: string
+  description?: string
+  type: 'sistema' | 'personalizado' | string
+  status: 'ativo' | 'inativo' | string
+  permissions: PermissionsMatrix
+  createdAt?: string
+  updatedAt?: string
 }

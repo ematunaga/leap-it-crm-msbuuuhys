@@ -7,6 +7,7 @@ import {
   Competitor,
   Contract,
   Proposal,
+  AccessProfile,
 } from '@/types'
 
 export const mockAccounts: Account[] = [
@@ -294,5 +295,66 @@ export const mockContracts: Contract[] = [
     startDate: '2021-06-01',
     endDate: '2023-11-01',
     status: 'Expirando',
+  },
+]
+
+export const mockProfiles: AccessProfile[] = [
+  {
+    id: '1',
+    name: 'Administrador Global',
+    description: 'Acesso total a todos os recursos, configurações e relatórios da plataforma.',
+    type: 'sistema',
+    status: 'ativo',
+    createdAt: '2023-01-10T10:00:00.000Z',
+    permissions: {
+      dashboard: { visualizar: true },
+      leads: { visualizar: true, criar: true, editar: true, excluir: true, escopo: 'tudo' },
+      opportunities: { visualizar: true, criar: true, editar: true, excluir: true, escopo: 'tudo' },
+      contacts: { visualizar: true, criar: true, editar: true, excluir: true, escopo: 'tudo' },
+      accounts: { visualizar: true, criar: true, editar: true, excluir: true, escopo: 'tudo' },
+      proposals: { visualizar: true, criar: true, editar: true, excluir: true, escopo: 'tudo' },
+      tickets: { visualizar: true, criar: true, editar: true, excluir: true, escopo: 'tudo' },
+      campaigns: { visualizar: true, criar: true, editar: true, excluir: true },
+      competitors: { visualizar: true, criar: true, editar: true, excluir: true },
+      distributors: { visualizar: true, criar: true, editar: true, excluir: true },
+      reports: { visualizar: true, exportar: true },
+      settings: { visualizar: true, gerenciar_perfis: true, gerenciar_usuarios: true },
+      avancadas: {
+        visualizar_valores_financeiros: true,
+        exportar_dados: true,
+        acessar_relatorios_avancados: true,
+        gerenciar_tags: true,
+        visualizar_auditoria: true,
+        atribuir_registros: true,
+        excluir_em_massa: true,
+        importar_dados: true,
+      },
+    },
+  },
+  {
+    id: '2',
+    name: 'Executivo de Vendas',
+    description:
+      'Acesso às oportunidades e contas próprias. Sem permissão para exclusão de registros e acessos administrativos.',
+    type: 'personalizado',
+    status: 'ativo',
+    createdAt: '2023-02-15T10:00:00.000Z',
+    permissions: {
+      dashboard: { visualizar: true },
+      leads: { visualizar: true, criar: true, editar: true, excluir: false, escopo: 'proprio' },
+      opportunities: {
+        visualizar: true,
+        criar: true,
+        editar: true,
+        excluir: false,
+        escopo: 'proprio',
+      },
+      contacts: { visualizar: true, criar: true, editar: true, excluir: false, escopo: 'proprio' },
+      accounts: { visualizar: true, criar: true, editar: true, excluir: false, escopo: 'proprio' },
+      proposals: { visualizar: true, criar: true, editar: true, excluir: false, escopo: 'proprio' },
+      avancadas: {
+        visualizar_valores_financeiros: true,
+      },
+    },
   },
 ]

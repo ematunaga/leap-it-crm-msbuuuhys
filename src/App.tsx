@@ -15,6 +15,7 @@ import OpportunityDetail from './pages/opportunities/OpportunityDetail'
 import ActivitiesList from './pages/activities/ActivitiesList'
 import ActivityDetail from './pages/activities/ActivityDetail'
 import GenericListWrapper from './pages/shared/GenericListWrapper'
+import SettingsDashboard from './pages/settings/SettingsDashboard'
 import { CrmProvider } from './stores/useCrmStore'
 
 const App = () => (
@@ -39,6 +40,9 @@ const App = () => (
             <Route path="/atividades" element={<ActivitiesList />} />
             <Route path="/atividades/:id" element={<ActivityDetail />} />
 
+            {/* Configuracoes / Admin */}
+            <Route path="/configuracoes" element={<SettingsDashboard />} />
+
             {/* Generics */}
             <Route path="/leads" element={<GenericListWrapper />} />
             <Route path="/concorrentes" element={<GenericListWrapper />} />
@@ -47,7 +51,6 @@ const App = () => (
             <Route path="/propostas" element={<GenericListWrapper />} />
             <Route path="/relatorios" element={<GenericListWrapper />} />
             <Route path="/usuarios" element={<GenericListWrapper />} />
-            <Route path="/configuracoes" element={<GenericListWrapper />} />
             <Route path="/auditoria" element={<GenericListWrapper />} />
           </Route>
           <Route path="*" element={<NotFound />} />
