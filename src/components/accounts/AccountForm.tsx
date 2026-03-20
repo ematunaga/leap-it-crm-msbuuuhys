@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import useCrmStore from '@/stores/useCrmStore'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 const OPTS = {
@@ -41,8 +41,11 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors },
-  } = useForm()
+  } = useForm({ defaultValues: { branches: [] } })
+
+  const { fields, append, remove } = useFieldArray({ control, name: 'branches' })
   const [isLoadingCnpj, setIsLoadingCnpj] = useState(false)
 
   const handleCnpjBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
@@ -85,7 +88,7 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
 
   const F = ({ label, name, req }: any) => (
     <div className="space-y-1">
-      <Label className="text-xs">
+      <Label className="text-[11px]">
         {label}
         {req && ' *'}
       </Label>
@@ -95,7 +98,7 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
   )
   const S = ({ label, name, opts }: any) => (
     <div className="space-y-1">
-      <Label className="text-xs">{label}</Label>
+      <Label className="text-[11px]">{label}</Label>
       <select
         className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
         {...register(name)}
@@ -108,21 +111,12 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
       </select>
     </div>
   )
-  const T = ({ label, name }: any) => (
-    <div className="space-y-1 col-span-2 sm:col-span-1">
-      <Label className="text-xs">{label}</Label>
-      <textarea
-        className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs"
-        {...register(name)}
-      />
-    </div>
-  )
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1 col-span-2 sm:col-span-1">
-          <Label className="text-xs">CNPJ</Label>
+          <Label className="text-[11px]">CNPJ</Label>
           <div className="relative">
             <Input
               className="h-8 text-xs"
@@ -137,43 +131,16 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
         <F label="Razão Social" name="name" req />
         <F label="Nome Fantasia" name="tradingName" />
-        <F label="Inscrição Estadual" name="stateRegistration" />
+        <F label="Insc. Estadual" name="stateRegistration" />
 
         <div className="col-span-2 font-semibold text-xs mt-2 border-b pb-1 text-muted-foreground">
-          Contato & Web
+          Contato & Endereço
         </div>
         <F label="E-mail" name="email" />
         <F label="Telefone" name="phone" />
-        <F label="Website" name="website" />
-        <F label="LinkedIn" name="linkedin" />
-
-        <div className="col-span-2 font-semibold text-xs mt-2 border-b pb-1 text-muted-foreground">
-          Classificação & Estratégia
-        </div>
-        <S label="Segmento" name="segment" opts={toOpts(OPTS.segment)} />
-        <S label="Porte (Funcionários)" name="porte" opts={toOpts(OPTS.porte)} />
-        <F label="Indústria (Detalhe)" name="industry" />
-        <S label="Status da Conta" name="status" opts={toOpts(OPTS.status)} />
-        <S label="Account Tier" name="accountTier" opts={toOpts(OPTS.tier)} />
-        <F label="Potencial (R$)" name="accountPotential" />
-        <S
-          label="Status de Relacionamento"
-          name="relationshipStatus"
-          opts={toOpts(OPTS.relStatus)}
-        />
-        <S label="Saúde da Conta" name="accountHealth" opts={toOpts(OPTS.health)} />
-
-        <T label="Ambiente Atual (Tech Stack)" name="currentEnvironment" />
-        <T label="Dor Principal" name="mainPain" />
-        <T label="Notas Estratégicas" name="strategicNotes" />
-        <T label="White Space (Oportunidades)" name="whiteSpaceNotes" />
-
-        <div className="col-span-2 font-semibold text-xs mt-2 border-b pb-1 text-muted-foreground">
-          Endereço Sede
-        </div>
-        <F label="CEP" name="headquartersZip" />
-        <div className="space-y-1 col-span-2 sm:col-span-1">
-          <Label className="text-xs">Cidade / Estado</Label>
+        <F label="CEP Sede" name="headquartersZip" />
+        <div className="space-y-1">
+          <Label className="text-[11px]">Cidade / UF</Label>
           <div className="flex gap-2">
             <Input
               className="h-8 text-xs flex-1"
@@ -187,10 +154,76 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
             />
           </div>
         </div>
-        <div className="space-y-1 col-span-2">
-          <Label className="text-xs">Logradouro completo</Label>
-          <Input className="h-8 text-xs" {...register('headquartersAddress')} />
+        <div className="col-span-2">
+          <F label="Logradouro completo" name="headquartersAddress" />
         </div>
+
+        <div className="col-span-2 font-semibold text-xs mt-2 border-b pb-1 text-muted-foreground">
+          Classificação Estratégica
+        </div>
+        <S label="Segmento" name="segment" opts={toOpts(OPTS.segment)} />
+        <S label="Porte" name="porte" opts={toOpts(OPTS.porte)} />
+        <S label="Status da Conta" name="status" opts={toOpts(OPTS.status)} />
+        <S label="Account Tier" name="accountTier" opts={toOpts(OPTS.tier)} />
+        <F label="Potencial (R$)" name="accountPotential" />
+        <S
+          label="Status de Relacionamento"
+          name="relationshipStatus"
+          opts={toOpts(OPTS.relStatus)}
+        />
+        <S label="Saúde da Conta" name="accountHealth" opts={toOpts(OPTS.health)} />
+
+        <div className="col-span-2 font-semibold text-xs mt-4 border-b pb-1 text-muted-foreground flex justify-between items-center">
+          <span>Filiais</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => append({ cnpj: '', ie: '', zip: '', address: '', city: '', state: '' })}
+            className="h-6 text-xs px-2"
+          >
+            <Plus className="w-3 h-3 mr-1" /> Adicionar Filial
+          </Button>
+        </div>
+        {fields.map((field, index) => (
+          <div
+            key={field.id}
+            className="col-span-2 border rounded-md p-3 space-y-3 relative bg-muted/20"
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 h-6 w-6 text-destructive"
+              onClick={() => remove(index)}
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+            <div className="grid grid-cols-2 gap-3 pr-8">
+              <F label="CNPJ" name={`branches.${index}.cnpj`} />
+              <F label="Insc. Estadual" name={`branches.${index}.ie`} />
+              <F label="CEP" name={`branches.${index}.zip`} />
+              <div className="space-y-1">
+                <Label className="text-[11px]">Cidade / UF</Label>
+                <div className="flex gap-2">
+                  <Input
+                    className="h-8 text-xs flex-1"
+                    placeholder="Cidade"
+                    {...register(`branches.${index}.city`)}
+                  />
+                  <Input
+                    className="h-8 text-xs w-12"
+                    placeholder="UF"
+                    {...register(`branches.${index}.state`)}
+                  />
+                </div>
+              </div>
+              <div className="col-span-2">
+                <F label="Logradouro" name={`branches.${index}.address`} />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
       <div className="flex justify-end pt-2 pb-4">
         <Button type="submit" size="sm">
