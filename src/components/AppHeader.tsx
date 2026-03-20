@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Bell, Search, User } from 'lucide-react'
+import { Bell, Search, User as UserIcon } from 'lucide-react'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -22,17 +22,21 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import useCrmStore from '@/stores/useCrmStore'
+import { useAuth } from '@/hooks/use-auth'
 
 export function AppHeader() {
   const location = useLocation()
   const pathnames = location.pathname.split('/').filter((x) => x)
-  const { activities } = useCrmStore()
+  const { activities, users } = useCrmStore()
+  const { signOut, user } = useAuth()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [isSearching, setIsSearching] = useState(false)
 
   const unreadAlerts = activities.filter((a) => a.isOverdue).length
+  const currentUser = users.find((u) => u.email === user?.email) || users[0]
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -136,16 +140,31 @@ export function AppHeader() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full bg-muted">
-              <User className="h-5 w-5" />
+              <Avatar className="w-8 h-8 border">
+                <AvatarImage src={currentUser?.avatarUrl} className="object-cover" />
+                <AvatarFallback>
+                  <UserIcon className="w-4 h-4" />
+                </AvatarFallback>
+              </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+            <DropdownMenuLabel>{currentUser?.name || 'Minha Conta'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Perfil</DropdownMenuItem>
-            <DropdownMenuItem>Configurações</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/meu-perfil" className="w-full cursor-pointer">
+                Perfil
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/configuracoes" className="w-full cursor-pointer">
+                Configurações
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Sair</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => signOut()}>
+              Sair
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

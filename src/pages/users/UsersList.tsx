@@ -8,6 +8,7 @@ import useCrmStore from '@/stores/useCrmStore'
 import { AppUser } from '@/types'
 import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export default function UsersList() {
   const { users, profiles, deleteUser, syncWithPricingApp } = useCrmStore()
@@ -45,11 +46,10 @@ export default function UsersList() {
       label: 'Usuário',
       render: (_: any, u: AppUser) => (
         <div className="flex items-center gap-3">
-          <img
-            src={u.avatarUrl || `https://img.usecurling.com/ppl/thumbnail?seed=${u.id}`}
-            alt={u.name}
-            className="w-9 h-9 rounded-full border object-cover"
-          />
+          <Avatar className="w-9 h-9 border shadow-sm">
+            <AvatarImage src={u.avatarUrl} className="object-cover" />
+            <AvatarFallback>{u.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
           <div>
             <div className="font-medium">{u.name}</div>
             <div className="text-xs text-muted-foreground">{u.email}</div>

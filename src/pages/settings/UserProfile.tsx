@@ -5,26 +5,45 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import useCrmStore from '@/stores/useCrmStore'
+import { useAuth } from '@/hooks/use-auth'
 import { ShieldCheck } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export default function UserProfile() {
   const { users, updateUser } = useCrmStore()
   const { toast } = useToast()
+  const { user } = useAuth()
 
-  // Simulando o usuário logado (usando o primeiro da lista como exemplo)
-  const currentUser = users[0]
+  // Match the currently logged in user (or fallback for safe render if sync hasn't occurred)
+  const currentUser = users.find((u) => u.email === user?.email) || users[0]
 
   const [name, setName] = useState(currentUser?.name || '')
   const [email, setEmail] = useState(currentUser?.email || '')
+  const [avatarPreview, setAvatarPreview] = useState(currentUser?.avatarUrl || '')
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({ title: 'A imagem deve ter no máximo 2MB', variant: 'destructive' })
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentUser) return
-    updateUser(currentUser.id, { name, email })
+    updateUser(currentUser.id, { name, email, avatarUrl: avatarPreview })
     toast({ title: 'Perfil atualizado com sucesso!' })
   }
 
@@ -34,12 +53,6 @@ export default function UserProfile() {
       toast({ title: 'As senhas não coincidem.', variant: 'destructive' })
       return
     }
-
-    // Simulação da aplicação de Criptografia (Hashing) antes do envio
-    const emailHash = btoa(email)
-    const passwordHash = btoa(newPassword)
-    console.log(`[Segurança] Payload Email: ${emailHash}`)
-    console.log(`[Segurança] Payload Senha: ${passwordHash}`)
 
     toast({
       title: 'Senha alterada com sucesso!',
@@ -68,18 +81,20 @@ export default function UserProfile() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSaveProfile} className="space-y-4">
-            <div className="flex items-center gap-4 mb-4">
-              <img
-                src={
-                  currentUser?.avatarUrl ||
-                  `https://img.usecurling.com/ppl/thumbnail?seed=${currentUser?.id}`
-                }
-                alt="Avatar"
-                className="w-16 h-16 rounded-full border object-cover"
-              />
-              <Button type="button" variant="outline" size="sm">
-                Alterar Foto
-              </Button>
+            <div className="flex flex-col gap-2 mb-4">
+              <Label>Foto de Perfil</Label>
+              <div className="flex items-center gap-4">
+                <Avatar className="w-16 h-16 border shadow-sm">
+                  <AvatarImage src={avatarPreview} className="object-cover" />
+                  <AvatarFallback>{name?.substring(0, 2).toUpperCase() || 'UN'}</AvatarFallback>
+                </Avatar>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="max-w-[250px] text-xs cursor-pointer"
+                />
+              </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

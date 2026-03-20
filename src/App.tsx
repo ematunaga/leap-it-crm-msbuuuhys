@@ -19,47 +19,55 @@ import SettingsDashboard from './pages/settings/SettingsDashboard'
 import UsersList from './pages/users/UsersList'
 import UserProfile from './pages/settings/UserProfile'
 import { CrmProvider } from './stores/useCrmStore'
+import { AuthProvider } from './hooks/use-auth'
+import ProtectedRoute from './components/ProtectedRoute'
+import Login from './pages/auth/Login'
 
 const App = () => (
   <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
-    <CrmProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/contas" element={<AccountsList />} />
-            <Route path="/contas/:id" element={<AccountDetail />} />
+    <AuthProvider>
+      <CrmProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/contas" element={<AccountsList />} />
+                <Route path="/contas/:id" element={<AccountDetail />} />
 
-            <Route path="/contatos" element={<ContactsList />} />
-            <Route path="/contatos/:id" element={<ContactDetail />} />
+                <Route path="/contatos" element={<ContactsList />} />
+                <Route path="/contatos/:id" element={<ContactDetail />} />
 
-            <Route path="/oportunidades" element={<OpportunitiesDashboard />} />
-            <Route path="/pipeline" element={<PipelineBoard />} />
-            <Route path="/oportunidades/:id" element={<OpportunityDetail />} />
+                <Route path="/oportunidades" element={<OpportunitiesDashboard />} />
+                <Route path="/pipeline" element={<PipelineBoard />} />
+                <Route path="/oportunidades/:id" element={<OpportunityDetail />} />
 
-            <Route path="/atividades" element={<ActivitiesList />} />
-            <Route path="/atividades/:id" element={<ActivityDetail />} />
+                <Route path="/atividades" element={<ActivitiesList />} />
+                <Route path="/atividades/:id" element={<ActivityDetail />} />
 
-            {/* Administracao / Seguranca */}
-            <Route path="/usuarios" element={<UsersList />} />
-            <Route path="/configuracoes" element={<SettingsDashboard />} />
-            <Route path="/meu-perfil" element={<UserProfile />} />
+                {/* Administracao / Seguranca */}
+                <Route path="/usuarios" element={<UsersList />} />
+                <Route path="/configuracoes" element={<SettingsDashboard />} />
+                <Route path="/meu-perfil" element={<UserProfile />} />
 
-            {/* Generics */}
-            <Route path="/leads" element={<GenericListWrapper />} />
-            <Route path="/concorrentes" element={<GenericListWrapper />} />
-            <Route path="/contratos" element={<GenericListWrapper />} />
-            <Route path="/campanhas" element={<GenericListWrapper />} />
-            <Route path="/propostas" element={<GenericListWrapper />} />
-            <Route path="/relatorios" element={<GenericListWrapper />} />
-            <Route path="/auditoria" element={<GenericListWrapper />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </TooltipProvider>
-    </CrmProvider>
+                {/* Generics */}
+                <Route path="/leads" element={<GenericListWrapper />} />
+                <Route path="/concorrentes" element={<GenericListWrapper />} />
+                <Route path="/contratos" element={<GenericListWrapper />} />
+                <Route path="/campanhas" element={<GenericListWrapper />} />
+                <Route path="/propostas" element={<GenericListWrapper />} />
+                <Route path="/relatorios" element={<GenericListWrapper />} />
+                <Route path="/auditoria" element={<GenericListWrapper />} />
+              </Route>
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
+      </CrmProvider>
+    </AuthProvider>
   </BrowserRouter>
 )
 

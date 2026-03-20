@@ -74,7 +74,6 @@ export const mockContacts: Contact[] = [
     position: 'CEO',
     email: 'tony@stark.com',
     phone: '11999999999',
-    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=1',
     influenceLevelGlobal: 'alto',
     relationshipStrength: 'forte',
   },
@@ -85,7 +84,6 @@ export const mockContacts: Contact[] = [
     position: 'COO',
     email: 'pepper@stark.com',
     phone: '11999999998',
-    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=2',
     influenceLevelGlobal: 'alto',
     relationshipStrength: 'forte',
   },
@@ -96,7 +94,6 @@ export const mockContacts: Contact[] = [
     position: 'CEO',
     email: 'bruce@wayne.com',
     phone: '11999999997',
-    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=3',
     influenceLevelGlobal: 'alto',
     relationshipStrength: 'medio',
   },
@@ -362,6 +359,18 @@ export const mockProfiles: AccessProfile[] = [
 
 export const mockUsers: AppUser[] = [
   {
+    id: 'u0',
+    name: 'Admin LeapIT',
+    email: 'ematunaga@gmail.com',
+    role: 'Administrador Global',
+    profileId: '1',
+    status: 'ativo',
+    origin: 'crm',
+    syncStatus: 'synced',
+    lastSyncAt: '2024-03-10T10:00:00Z',
+    createdAt: '2023-01-10T10:00:00.000Z',
+  },
+  {
     id: 'u1',
     name: 'Ana Silva',
     email: 'ana@leapit.com',
@@ -371,7 +380,6 @@ export const mockUsers: AppUser[] = [
     origin: 'crm',
     syncStatus: 'synced',
     lastSyncAt: '2024-03-10T10:00:00Z',
-    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=1',
     createdAt: '2023-01-10T10:00:00.000Z',
   },
   {
@@ -383,7 +391,6 @@ export const mockUsers: AppUser[] = [
     status: 'ativo',
     origin: 'precificacao',
     syncStatus: 'pending',
-    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=2',
     createdAt: '2023-03-15T10:00:00.000Z',
   },
   {
@@ -395,7 +402,6 @@ export const mockUsers: AppUser[] = [
     status: 'ativo',
     origin: 'crm',
     syncStatus: 'error',
-    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=3',
     createdAt: '2023-05-20T10:00:00.000Z',
   },
   {
@@ -408,7 +414,6 @@ export const mockUsers: AppUser[] = [
     origin: 'crm',
     syncStatus: 'synced',
     lastSyncAt: '2024-01-05T10:00:00Z',
-    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=4',
     createdAt: '2023-08-10T10:00:00.000Z',
   },
 ]

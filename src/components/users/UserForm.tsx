@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -12,10 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export function UserForm({ initialData, onSuccess }: any) {
   const { addUser, updateUser, profiles } = useCrmStore()
   const { toast } = useToast()
+  const [avatarPreview, setAvatarPreview] = useState(initialData?.avatarUrl || '')
 
   const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: initialData || {
@@ -26,16 +28,36 @@ export function UserForm({ initialData, onSuccess }: any) {
   })
 
   useEffect(() => {
-    if (initialData) reset(initialData)
+    if (initialData) {
+      reset(initialData)
+      setAvatarPreview(initialData.avatarUrl || '')
+    }
   }, [initialData, reset])
 
   const profileId = watch('profileId')
   const status = watch('status')
+  const name = watch('name')
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({ title: 'A imagem deve ter no máximo 2MB', variant: 'destructive' })
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const onSubmit = (data: any) => {
     const prof = profiles.find((p) => p.id === data.profileId)
     const payload = {
       ...data,
+      avatarUrl: avatarPreview,
       role: prof ? prof.name : 'Usuário',
       updatedAt: new Date().toISOString(),
     }
@@ -55,6 +77,22 @@ export function UserForm({ initialData, onSuccess }: any) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="flex flex-col gap-2 mb-2">
+        <Label>Foto de Perfil</Label>
+        <div className="flex items-center gap-4">
+          <Avatar className="w-16 h-16 border shadow-sm">
+            <AvatarImage src={avatarPreview} className="object-cover" />
+            <AvatarFallback>{name?.substring(0, 2).toUpperCase() || 'UN'}</AvatarFallback>
+          </Avatar>
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="max-w-[250px] text-xs cursor-pointer"
+          />
+        </div>
+      </div>
+
       <div className="space-y-1">
         <Label>Nome Completo *</Label>
         <Input {...register('name', { required: true })} placeholder="Ex: João Silva" />
