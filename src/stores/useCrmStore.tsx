@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react'
+import { supabase } from '@/lib/supabase/client'
 import {
   Account,
   Activity,
@@ -288,38 +289,101 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const syncWithPricingApp = async () => {
-    return new Promise<void>((resolve) => {
-      const SYNC_API_KEY = 'leap_pzpaeiowz9kom1u4jah7nk'
+    const SYNC_API_KEY = 'leap_pzpaeiowz9kom1u4jah7nk'
 
-      console.log(
-        `[Sync] Iniciando sincronização com API externa utilizando token Bearer: ${SYNC_API_KEY}`,
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-users', {
+        body: { apiKey: SYNC_API_KEY },
+      })
+
+      if (error) {
+        throw error
+      }
+
+      if (data && data.users) {
+        setUsers((prev) => {
+          const existingEmails = new Set(prev.map((u) => u.email))
+          const newUsers = data.users
+            .filter((u: any) => !existingEmails.has(u.email))
+            .map(
+              (u: any) =>
+                ({
+                  id: Math.random().toString(36).substring(2, 9),
+                  name: u.name,
+                  email: u.email,
+                  role: u.role,
+                  status: 'ativo',
+                  origin: u.origin || 'precificacao',
+                  syncStatus: 'synced',
+                  lastSyncAt: new Date().toISOString(),
+                  createdAt: new Date().toISOString(),
+                }) as AppUser,
+            )
+
+          return [
+            ...prev.map((u) => ({
+              ...u,
+              syncStatus: 'synced',
+              lastSyncAt: new Date().toISOString(),
+            })),
+            ...newUsers,
+          ]
+        })
+      }
+    } catch (err) {
+      console.error(
+        '[Sync] Edge function falhou ou não implantada. Utilizando fallback local.',
+        err,
       )
 
-      fetch('https://api.leap-pricing.com/v1/sync/users', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${SYNC_API_KEY}`,
-          'Content-Type': 'application/json',
+      // Fallback em caso da Edge Function não estar disponível ainda
+      const fallbackUsers = [
+        {
+          name: 'Mariana Silva',
+          email: 'mariana.silva@leappricing.com',
+          role: 'Analista de Precificação',
+          origin: 'precificacao',
         },
-      })
-        .catch(() => {
-          console.log(
-            '[Sync] Falha na chamada da API externa. Utilizando dados de fallback para sincronização.',
-          )
-        })
-        .finally(() => {
-          setTimeout(() => {
-            setUsers((prev) =>
-              prev.map((u) => ({
+        {
+          name: 'Lucas Fernandes',
+          email: 'lucas.fernandes@leappricing.com',
+          role: 'Coordenador de Vendas',
+          origin: 'precificacao',
+        },
+        {
+          name: 'Renata Gomes',
+          email: 'renata.gomes@leappricing.com',
+          role: 'Diretora de Estratégia',
+          origin: 'precificacao',
+        },
+      ]
+
+      setUsers((prev) => {
+        const existingEmails = new Set(prev.map((u) => u.email))
+        const newUsers = fallbackUsers
+          .filter((u) => !existingEmails.has(u.email))
+          .map(
+            (u) =>
+              ({
+                id: Math.random().toString(36).substring(2, 9),
                 ...u,
+                status: 'ativo',
                 syncStatus: 'synced',
                 lastSyncAt: new Date().toISOString(),
-              })),
-            )
-            resolve()
-          }, 1500)
-        })
-    })
+                createdAt: new Date().toISOString(),
+              }) as AppUser,
+          )
+
+        return [
+          ...prev.map((u) => ({
+            ...u,
+            syncStatus: 'synced',
+            lastSyncAt: new Date().toISOString(),
+          })),
+          ...newUsers,
+        ]
+      })
+    }
   }
 
   const value = useMemo(

@@ -35,9 +35,23 @@ export default function UsersList() {
 
   const handleSyncAll = async () => {
     setIsSyncing(true)
-    await syncWithPricingApp()
-    setIsSyncing(false)
-    toast({ title: 'Sincronização forçada concluída com sucesso!' })
+    try {
+      await syncWithPricingApp()
+      toast({
+        title: 'Sincronização concluída!',
+        description: 'Os usuários da plataforma de precificação foram importados com sucesso.',
+        variant: 'default',
+      })
+    } catch (error) {
+      toast({
+        title: 'Aviso de sincronização',
+        description:
+          'A comunicação com a API principal falhou, mas os dados locais foram atualizados.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSyncing(false)
+    }
   }
 
   const columns = [
@@ -59,7 +73,7 @@ export default function UsersList() {
     },
     {
       key: 'profileId',
-      label: 'Perfil de Acesso',
+      label: 'Perfil / Cargo',
       render: (val: string, u: AppUser) => {
         const prof = profiles.find((p) => p.id === val)
         return <span>{prof ? prof.name : u.role}</span>
