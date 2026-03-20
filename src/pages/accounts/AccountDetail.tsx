@@ -2,7 +2,6 @@ import { Link, useParams } from 'react-router-dom'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import useCrmStore from '@/stores/useCrmStore'
 import { formatDate, formatMoney } from '@/lib/utils'
 import NotFound from '../NotFound'
@@ -47,54 +46,193 @@ export default function AccountDetail() {
         </div>
       </div>
 
-      <Tabs defaultValue="info" className="w-full">
+      <Tabs defaultValue="360" className="w-full">
         <TabsList className="bg-muted flex flex-wrap h-auto w-full justify-start gap-1 p-1">
-          <TabsTrigger value="info">Informações</TabsTrigger>
+          <TabsTrigger value="360">Visão 360º</TabsTrigger>
           <TabsTrigger value="branches">Filiais ({account.branches?.length || 0})</TabsTrigger>
           <TabsTrigger value="opportunities">Oportunidades ({accOpps.length})</TabsTrigger>
           <TabsTrigger value="contacts">Contatos ({accContacts.length})</TabsTrigger>
-          <TabsTrigger value="timeline">Atividades</TabsTrigger>
-          <TabsTrigger value="whitespace">Estratégia</TabsTrigger>
+          <TabsTrigger value="timeline">Atividades ({accActivities.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="info" className="mt-4 space-y-4">
-          <Card className="shadow-subtle">
-            <CardHeader>
-              <CardTitle>Dados Básicos & Relacionamento</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div>
-                <p className="text-sm text-muted-foreground">Saúde da Conta</p>
-                <p className="font-medium capitalize">
-                  {account.accountHealth?.replace('_', ' ') || '-'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Status de Relacionamento</p>
-                <p className="font-medium capitalize">
-                  {account.relationshipStatus?.replace('_', ' ') || '-'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Porte (Funcionários)</p>
-                <p className="font-medium capitalize">{account.porte || '-'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Potencial Estimado</p>
-                <p className="font-medium font-mono">
-                  {account.accountPotential ? formatMoney(account.accountPotential) : '-'}
-                </p>
-              </div>
-              <div className="col-span-2 md:col-span-4 border-t pt-4 mt-2">
-                <p className="text-sm text-muted-foreground">Endereço Sede</p>
-                <p className="font-medium">
-                  {account.headquartersAddress
-                    ? `${account.headquartersAddress} - ${account.headquartersCity}/${account.headquartersState} - CEP: ${account.headquartersZip}`
-                    : '-'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="360" className="mt-4 space-y-4 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="shadow-subtle">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Cadastro & Identificação</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-3">
+                  <div className="col-span-2 sm:col-span-1">
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Razão Social
+                    </p>
+                    <p className="font-medium">{account.name}</p>
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Nome Fantasia
+                    </p>
+                    <p className="font-medium">{account.tradingName || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      CNPJ
+                    </p>
+                    <p className="font-medium font-mono">{account.cnpj || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Insc. Estadual
+                    </p>
+                    <p className="font-medium font-mono">{account.stateRegistration || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Segmento
+                    </p>
+                    <p className="font-medium capitalize">{account.segment || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Porte
+                    </p>
+                    <p className="font-medium">{account.porte || '-'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-subtle">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Contato Principal & Sede</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-3">
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      E-mail
+                    </p>
+                    <p className="font-medium">{account.email || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Telefone
+                    </p>
+                    <p className="font-medium">{account.phone || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Website
+                    </p>
+                    <p className="font-medium">{account.website || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      LinkedIn
+                    </p>
+                    <p className="font-medium">{account.linkedin || '-'}</p>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t">
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold mb-1">
+                      Endereço (Sede)
+                    </p>
+                    <p className="font-medium">
+                      {account.headquartersAddress ? (
+                        <>
+                          {account.headquartersAddress} <br />
+                          {account.headquartersCity}/{account.headquartersState} - CEP{' '}
+                          {account.headquartersZip}
+                        </>
+                      ) : (
+                        '-'
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-subtle md:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Relacionamento & Performance</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-muted/30 p-3 rounded-lg border">
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Saúde da Conta
+                    </p>
+                    <p className="font-semibold text-base mt-1 capitalize">
+                      {account.accountHealth?.replace('_', ' ') || '-'}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg border">
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Status Relac.
+                    </p>
+                    <p className="font-semibold text-base mt-1 capitalize">
+                      {account.relationshipStatus?.replace('_', ' ') || '-'}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg border">
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Tier
+                    </p>
+                    <p className="font-semibold text-base mt-1 capitalize">
+                      {account.accountTier || '-'}
+                    </p>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-lg border">
+                    <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                      Potencial
+                    </p>
+                    <p className="font-semibold text-base mt-1 font-mono">
+                      {account.accountPotential ? formatMoney(account.accountPotential) : '-'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-subtle md:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Análise Estratégica</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                <div className="flex flex-col gap-2">
+                  <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                    Dor Principal
+                  </p>
+                  <div className="bg-muted/30 p-3 rounded border h-full">
+                    {account.mainPain || (
+                      <span className="text-muted-foreground italic">Não identificada</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                    Stack / Ambiente
+                  </p>
+                  <div className="bg-muted/30 p-3 rounded border h-full">
+                    {account.currentEnvironment || (
+                      <span className="text-muted-foreground italic">Não informado</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-muted-foreground text-[11px] uppercase font-semibold">
+                    White Space (Expansão)
+                  </p>
+                  <div className="bg-muted/30 p-3 rounded border h-full">
+                    {account.whiteSpaceNotes || (
+                      <span className="text-muted-foreground italic">Sem anotações</span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="branches" className="mt-4">
@@ -120,7 +258,7 @@ export default function AccountDetail() {
             </div>
           ) : (
             <div className="p-8 text-center border rounded-xl bg-card text-muted-foreground shadow-subtle">
-              Nenhuma filial cadastrada para esta conta.
+              Nenhuma filial cadastrada.
             </div>
           )}
         </TabsContent>
@@ -232,45 +370,6 @@ export default function AccountDetail() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="whitespace" className="mt-4 space-y-4">
-          <Card className="shadow-subtle">
-            <CardHeader>
-              <CardTitle>Dor Principal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm">{account.mainPain || 'Não identificada.'}</p>
-            </CardContent>
-          </Card>
-          <Card className="shadow-subtle">
-            <CardHeader>
-              <CardTitle>Análise de Expansão (White Space)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                readOnly
-                defaultValue={account.whiteSpaceNotes}
-                rows={4}
-                className="bg-muted/50 resize-none"
-                placeholder="Sem anotações de expansão..."
-              />
-            </CardContent>
-          </Card>
-          <Card className="shadow-subtle">
-            <CardHeader>
-              <CardTitle>Stack Tecnológico / Ambiente Atual</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                readOnly
-                defaultValue={account.currentEnvironment}
-                rows={3}
-                className="bg-muted/50 resize-none"
-                placeholder="Sem informações sobre o ambiente..."
-              />
             </CardContent>
           </Card>
         </TabsContent>
