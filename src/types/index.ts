@@ -331,3 +331,17 @@ export interface AccessProfile {
   createdAt?: string
   updatedAt?: string
 }
+
+export interface AppUser {
+  id: string
+  name: string
+  email: string
+  role: string
+  profileId?: string
+  avatarUrl?: string
+  status: 'ativo' | 'inativo' | string
+  origin: 'crm' | 'precificacao' | string
+  syncStatus: 'synced' | 'pending' | 'error' | string
+  lastSyncAt?: string
+  createdAt?: string
+}

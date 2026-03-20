@@ -8,6 +8,7 @@ import {
   Contract,
   Proposal,
   AccessProfile,
+  AppUser,
 } from '@/types'
 
 export const mockAccounts: Account[] = [
@@ -356,5 +357,58 @@ export const mockProfiles: AccessProfile[] = [
         visualizar_valores_financeiros: true,
       },
     },
+  },
+]
+
+export const mockUsers: AppUser[] = [
+  {
+    id: 'u1',
+    name: 'Ana Silva',
+    email: 'ana@leapit.com',
+    role: 'Administradora',
+    profileId: '1',
+    status: 'ativo',
+    origin: 'crm',
+    syncStatus: 'synced',
+    lastSyncAt: '2024-03-10T10:00:00Z',
+    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=1',
+    createdAt: '2023-01-10T10:00:00.000Z',
+  },
+  {
+    id: 'u2',
+    name: 'Carlos Santos',
+    email: 'carlos@leapit.com',
+    role: 'Vendedor',
+    profileId: '2',
+    status: 'ativo',
+    origin: 'precificacao',
+    syncStatus: 'pending',
+    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=2',
+    createdAt: '2023-03-15T10:00:00.000Z',
+  },
+  {
+    id: 'u3',
+    name: 'Mariana Costa',
+    email: 'mariana@leapit.com',
+    role: 'Gerente Comercial',
+    profileId: '1',
+    status: 'ativo',
+    origin: 'crm',
+    syncStatus: 'error',
+    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=female&seed=3',
+    createdAt: '2023-05-20T10:00:00.000Z',
+  },
+  {
+    id: 'u4',
+    name: 'Pedro Ferreira',
+    email: 'pedro@leapit.com',
+    role: 'SDR',
+    profileId: '2',
+    status: 'inativo',
+    origin: 'crm',
+    syncStatus: 'synced',
+    lastSyncAt: '2024-01-05T10:00:00Z',
+    avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=4',
+    createdAt: '2023-08-10T10:00:00.000Z',
   },
 ]

@@ -8,6 +8,7 @@ import {
   Lead,
   Opportunity,
   AccessProfile,
+  AppUser,
 } from '@/types'
 import {
   mockAccounts,
@@ -18,6 +19,7 @@ import {
   mockCompetitors,
   mockContracts,
   mockProfiles,
+  mockUsers,
 } from '@/lib/mock-data'
 
 interface CrmStore {
@@ -29,6 +31,7 @@ interface CrmStore {
   competitors: Competitor[]
   contracts: Contract[]
   profiles: AccessProfile[]
+  users: AppUser[]
   updateOppStage: (id: string, stage: string) => void
   addActivity: (activity: Omit<Activity, 'id'>) => void
   updateActivity: (id: string, updates: Partial<Activity>) => void
@@ -40,6 +43,7 @@ interface CrmStore {
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
   addProfile: (profile: Omit<AccessProfile, 'id'>) => void
   updateProfile: (id: string, updates: Partial<AccessProfile>) => void
+  syncWithPricingApp: () => Promise<void>
 }
 
 const CrmContext = createContext<CrmStore | null>(null)
@@ -53,6 +57,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [competitors, setCompetitors] = useState<Competitor[]>(mockCompetitors)
   const [contracts, setContracts] = useState<Contract[]>(mockContracts)
   const [profiles, setProfiles] = useState<AccessProfile[]>(mockProfiles)
+  const [users, setUsers] = useState<AppUser[]>(mockUsers)
 
   useEffect(() => {
     const today = new Date()
@@ -193,6 +198,22 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const syncWithPricingApp = async () => {
+    // Simula a integração entre LEAP IT CRM e LEAP IT Precificação
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setUsers((prev) =>
+          prev.map((u) => ({
+            ...u,
+            syncStatus: 'synced',
+            lastSyncAt: new Date().toISOString(),
+          })),
+        )
+        resolve()
+      }, 1500)
+    })
+  }
+
   const value = useMemo(
     () => ({
       accounts,
@@ -203,6 +224,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       competitors,
       contracts,
       profiles,
+      users,
       updateOppStage,
       addActivity,
       updateActivity,
@@ -214,8 +236,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       addOpportunity,
       addProfile,
       updateProfile,
+      syncWithPricingApp,
     }),
-    [accounts, contacts, opps, activities, leads, competitors, contracts, profiles],
+    [accounts, contacts, opps, activities, leads, competitors, contracts, profiles, users],
   )
 
   return <CrmContext.Provider value={value}>{children}</CrmContext.Provider>
