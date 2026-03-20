@@ -2,8 +2,18 @@ import { useState } from 'react'
 import useCrmStore from '@/stores/useCrmStore'
 import { KanbanCard } from './KanbanCard'
 import { Opportunity } from '@/types'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
+import { Plus } from 'lucide-react'
 
-const STAGES: Opportunity['stage'][] = [
+const STAGES: string[] = [
   'prospeccao',
   'qualificacao',
   'proposta_enviada',
@@ -12,7 +22,7 @@ const STAGES: Opportunity['stage'][] = [
   'perdido',
 ]
 
-const stageLabels: Record<Opportunity['stage'], string> = {
+const stageLabels: Record<string, string> = {
   prospeccao: 'Prospecção',
   qualificacao: 'Qualificação',
   proposta_enviada: 'Proposta Enviada',
@@ -23,15 +33,33 @@ const stageLabels: Record<Opportunity['stage'], string> = {
 
 export default function PipelineBoard() {
   const { opps, updateOppStage } = useCrmStore()
+  const [openOpp, setOpenOpp] = useState(false)
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Pipeline Kanban</h1>
-        <p className="text-muted-foreground mt-1">
-          Arraste e solte para atualizar os estágios (Fria = Azul, Morna = Amarela, Quente =
-          Vermelha).
-        </p>
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Pipeline Kanban</h1>
+          <p className="text-muted-foreground mt-1">
+            Arraste e solte para atualizar os estágios (Fria = Azul, Morna = Amarela, Quente =
+            Vermelha).
+          </p>
+        </div>
+        <Dialog open={openOpp} onOpenChange={setOpenOpp}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[700px]">
+            <DialogHeader>
+              <DialogTitle>Nova Oportunidade</DialogTitle>
+            </DialogHeader>
+            <div className="pt-2">
+              <OpportunityForm onSuccess={() => setOpenOpp(false)} />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4 flex-1 min-h-[500px]">
@@ -66,7 +94,6 @@ function KanbanColumn({
     e.preventDefault()
     setIsOver(true)
   }
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsOver(false)
@@ -92,7 +119,7 @@ function KanbanColumn({
       <div className="p-3 text-sm text-muted-foreground border-b bg-background/50">
         R$ {(totalValue / 1000).toFixed(0)}k
       </div>
-      <div className="flex-1 p-3 overflow-y-auto">
+      <div className="flex-1 p-3 overflow-y-auto space-y-3">
         {items.map((opp) => (
           <KanbanCard key={opp.id} opp={opp} />
         ))}

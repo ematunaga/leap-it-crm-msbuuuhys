@@ -13,11 +13,17 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { ActivityForm } from '@/components/activities/ActivityForm'
-import { Plus } from 'lucide-react'
+import { Plus, Edit } from 'lucide-react'
 
 export default function ActivitiesList() {
   const { activities, opps, accounts } = useCrmStore()
   const [open, setOpen] = useState(false)
+  const [editData, setEditData] = useState<Activity | null>(null)
+
+  const handleEdit = (act: Activity) => {
+    setEditData(act)
+    setOpen(true)
+  }
 
   const columns = [
     {
@@ -69,34 +75,48 @@ export default function ActivitiesList() {
         </Badge>
       ),
     },
+    {
+      key: 'actions',
+      label: 'Ações',
+      render: (_: any, a: Activity) => (
+        <Button variant="ghost" size="icon" onClick={() => handleEdit(a)}>
+          <Edit className="w-4 h-4" />
+        </Button>
+      ),
+    },
   ]
 
   const actions = (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Nova Atividade
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Registrar Atividade</DialogTitle>
-        </DialogHeader>
-        <div className="pt-2">
-          <ActivityForm onSuccess={() => setOpen(false)} />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Button
+      onClick={() => {
+        setEditData(null)
+        setOpen(true)
+      }}
+    >
+      <Plus className="mr-2 h-4 w-4" /> Nova Atividade
+    </Button>
   )
 
   return (
-    <GenericDataTable
-      title="Central de Atividades"
-      subtitle="Histórico de interações e follow-ups pendentes."
-      data={activities}
-      columns={columns}
-      searchKey="summary"
-      actions={actions}
-    />
+    <>
+      <GenericDataTable
+        title="Central de Atividades"
+        subtitle="Histórico de interações e follow-ups pendentes."
+        data={activities}
+        columns={columns}
+        searchKey="summary"
+        actions={actions}
+      />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editData ? 'Editar Atividade' : 'Registrar Atividade'}</DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <ActivityForm initialData={editData} onSuccess={() => setOpen(false)} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

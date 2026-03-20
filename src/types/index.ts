@@ -16,29 +16,24 @@ export interface Account {
     state: string
     zip: string
   }[]
-  segment: 'industria' | 'saude' | 'servico' | 'varejo' | 'educacao' | 'outros'
-  porte?:
-    | '0-10'
-    | '11-20'
-    | '21-50'
-    | '51-100'
-    | '101-200'
-    | '201-500'
-    | '501-1000'
-    | '1001-2000'
-    | '2001-5000'
-    | '5001-10000'
-    | '10001+'
+  segment: 'industria' | 'saude' | 'servico' | 'varejo' | 'educacao' | 'outros' | string
+  porte?: string
   industry?: string
   website?: string
   linkedin?: string
   phone?: string
   email?: string
-  status: 'ativa' | 'inativa' | 'prospecto' | 'cliente'
-  accountTier?: 'bronze' | 'prata' | 'ouro' | 'platina'
+  status: 'ativa' | 'inativa' | 'prospecto' | 'cliente' | string
+  accountTier?: 'bronze' | 'prata' | 'ouro' | 'platina' | string
   accountPotential?: number
-  relationshipStatus?: 'novo' | 'em_desenvolvimento' | 'estabelecido' | 'em_risco' | 'dormindo'
-  accountHealth?: 'saudavel' | 'em_risco' | 'critico' | 'dormindo'
+  relationshipStatus?:
+    | 'novo'
+    | 'em_desenvolvimento'
+    | 'estabelecido'
+    | 'em_risco'
+    | 'dormindo'
+    | string
+  accountHealth?: 'saudavel' | 'em_risco' | 'critico' | 'dormindo' | string
   currentEnvironment?: string
   currentVendors?: string[]
   mainPain?: string
@@ -73,11 +68,11 @@ export interface Contact {
   state?: string
   country?: string
   zipCode?: string
-  relationshipStatus?: 'novo' | 'ativo' | 'inativo' | 'prospecto' | 'cliente' | 'parceiro'
-  preferredChannel?: 'email' | 'telefone' | 'whatsapp' | 'linkedin' | 'reuniao'
-  relationshipStrength?: 'fraco' | 'medio' | 'forte'
+  relationshipStatus?: string
+  preferredChannel?: string
+  relationshipStrength?: string
   communicationStyle?: string
-  influenceLevelGlobal?: 'baixo' | 'medio' | 'alto'
+  influenceLevelGlobal?: string
   tags?: string[]
   accountOwnerId?: string
   accountOwnerEmail?: string
@@ -94,57 +89,58 @@ export interface Opportunity {
   accountName?: string
   primaryContactId?: string
   primaryContactName?: string
-  opportunityOwnerId: string
-  opportunityOwnerEmail?: string
-  opportunityOwnerName?: string
+  opportunityOwnerId?: string
 
   value: number
-  currency: 'BRL' | 'USD'
+  currency: string
   valueUsd?: number
   dollarRate?: number
-  saleType: 'one_shot' | 'recorrente'
+  saleType: string
   mrrValue?: number
-  modality: 'revenda' | 'agenciamento'
+  modality: string
   commissionPercent?: number
-  partner: 'huawei' | 'huawei_cloud' | 'aws' | 'acronis' | 'fortinet' | 'outro'
-  solutionType?: 'infraestrutura' | 'seguranca' | 'cloud' | 'misto'
-  stage: 'prospeccao' | 'qualificacao' | 'proposta_enviada' | 'negociacao' | 'ganho' | 'perdido'
+  partner: string
+  solutionType?: string
+  stage: string
   expectedCloseDate?: string
-  source?: 'indicacao' | 'site' | 'linkedin' | 'cold_call' | 'evento' | 'campanha' | 'outro'
-  priority?: 'baixa' | 'media' | 'alta' | 'critica'
+  source?: string
+  priority?: string
 
   identifiedPain?: string
   businessImpact?: string
   decisionCriteria?: string
   decisionProcess?: string
-  budgetStatus?: 'nao_confirmado' | 'parcialmente_confirmado' | 'confirmado'
-  authorityStatus?: 'nao_identificado' | 'identificado' | 'confirmado'
-  timingStatus?: 'indefinido' | 'flexivel' | 'urgente' | 'critico'
+  budgetStatus?: string
+  authorityStatus?: string
+  timingStatus?: string
 
-  championStatus?: 'nao_identificado' | 'identificado' | 'confirmado'
-  economicBuyerStatus?: 'nao_identificado' | 'identificado' | 'confirmado'
-  decisionMakerStatus?: 'nao_identificado' | 'identificado' | 'confirmado'
+  championStatus?: string
+  championContactId?: string
+  economicBuyerStatus?: string
+  economicBuyerContactId?: string
+  decisionMakerStatus?: string
+  decisionMakerContactId?: string
 
-  temperature: 'fria' | 'morna' | 'quente'
+  temperature: string
   winProbability?: number
-  riskLevel?: 'baixo' | 'medio' | 'alto' | 'critico'
+  riskLevel?: string
   nextStep: string
   nextStepDate: string
   lastInteractionAt?: string
   lastInteractionSummary?: string
   daysInStage?: number
-  statusFollowUp?: 'em_dia' | 'atrasado' | 'critico'
+  statusFollowUp?: string
   isOverdue?: boolean
 
   mainCompetitorId?: string
   mainCompetitorName?: string
-  competitivePosition?: 'liderando' | 'empatado' | 'perdendo'
+  competitivePosition?: string
 
   clientBudget?: number
   budgetMargin?: number
   totalCost?: number
   fatorLeapit?: number
-  productType?: 'hardware' | 'software_servico'
+  productType?: string
   icmsHardwarePercent?: number
   ipiPercent?: number
   issHardwarePercent?: number
@@ -153,12 +149,12 @@ export interface Opportunity {
   issSoftwarePercent?: number
   sellerCommissionPercent?: number
   netMarginPercent?: number
-  distributor?: 'SND' | 'AGIS' | 'DICOMP' | 'INGRAM' | 'TD Synnex' | 'WDC' | 'ESY' | 'CLM'
+  distributor?: string
 
   dealRegistration?: boolean
   lossReason?: string
   lossReasonDetail?: string
-  forecastCategory?: 'pipeline' | 'best_case' | 'commit' | 'closed'
+  forecastCategory?: string
   createdAt?: string
   updatedAt?: string
   notes?: string
@@ -168,11 +164,11 @@ export interface Activity {
   id: string
   relatedTo: 'Account' | 'Opportunity' | 'Lead'
   relatedId: string
-  type: 'Call' | 'Email' | 'Meeting' | 'Note'
+  type: 'Call' | 'Email' | 'Meeting' | 'Note' | string
   date: string
-  status: 'Pendente' | 'Concluída'
+  status: 'Pendente' | 'Concluída' | string
   summary: string
-  outcome?: 'Positivo' | 'Neutro' | 'Negativo'
+  outcome?: 'Positivo' | 'Neutro' | 'Negativo' | string
   isOverdue?: boolean
 }
 
@@ -180,7 +176,7 @@ export interface Lead {
   id: string
   name: string
   company: string
-  status: 'Novo' | 'Contatado' | 'Qualificado' | 'Convertido'
+  status: string
   source: string
   createdAt: string
 }
@@ -199,7 +195,7 @@ export interface Contract {
   mrr: number
   startDate: string
   endDate: string
-  status: 'Ativo' | 'Expirando' | 'Cancelado'
+  status: string
 }
 
 export interface Proposal {
@@ -208,5 +204,5 @@ export interface Proposal {
   version: number
   value: number
   expiresAt: string
-  status: 'Rascunho' | 'Enviada' | 'Aprovada' | 'Rejeitada'
+  status: string
 }

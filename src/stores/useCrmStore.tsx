@@ -18,12 +18,15 @@ interface CrmStore {
   leads: Lead[]
   competitors: Competitor[]
   contracts: Contract[]
-  updateOppStage: (id: string, stage: Opportunity['stage']) => void
+  updateOppStage: (id: string, stage: string) => void
   addActivity: (activity: Omit<Activity, 'id'>) => void
-  updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
+  updateActivity: (id: string, updates: Partial<Activity>) => void
   addAccount: (account: Omit<Account, 'id'>) => void
+  updateAccount: (id: string, updates: Partial<Account>) => void
   addContact: (contact: Omit<Contact, 'id'>) => void
+  updateContact: (id: string, updates: Partial<Contact>) => void
   addOpportunity: (opp: Omit<Opportunity, 'id'>) => void
+  updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
 }
 
 const CrmContext = createContext<CrmStore | null>(null)
@@ -39,20 +42,30 @@ export function CrmProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
-
     setActivities((prev) =>
       prev.map((a) => (a.status === 'Pendente' && a.date < today ? { ...a, isOverdue: true } : a)),
     )
-
     setOpps((prev) => prev.map((o) => (o.nextStepDate < today ? { ...o, isOverdue: true } : o)))
   }, [])
 
-  const updateOppStage = (id: string, stage: Opportunity['stage']) => {
+  const updateOppStage = (id: string, stage: string) => {
     setOpps((prev) => prev.map((o) => (o.id === id ? { ...o, stage } : o)))
   }
 
   const updateOpportunity = (id: string, updates: Partial<Opportunity>) => {
     setOpps((prev) => prev.map((o) => (o.id === id ? { ...o, ...updates } : o)))
+  }
+
+  const updateAccount = (id: string, updates: Partial<Account>) => {
+    setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)))
+  }
+
+  const updateContact = (id: string, updates: Partial<Contact>) => {
+    setContacts((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)))
+  }
+
+  const updateActivity = (id: string, updates: Partial<Activity>) => {
+    setActivities((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)))
   }
 
   const addAccount = (acc: Omit<Account, 'id'>) => {
@@ -81,7 +94,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
             let newTemp = o.temperature
             if (act.outcome === 'Positivo') newTemp = 'quente'
             if (act.outcome === 'Neutro') newTemp = 'morna'
-
             return {
               ...o,
               temperature: newTemp,
@@ -113,9 +125,12 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       contracts,
       updateOppStage,
       addActivity,
+      updateActivity,
       updateOpportunity,
       addAccount,
+      updateAccount,
       addContact,
+      updateContact,
       addOpportunity,
     }),
     [accounts, contacts, opps, activities, leads, competitors, contracts],

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -16,19 +16,28 @@ const OPTS = {
 export function ContactForm({
   onSuccess,
   defaultAccountId = '',
+  initialData,
 }: {
   onSuccess: () => void
   defaultAccountId?: string
+  initialData?: any
 }) {
-  const { addContact, accounts } = useCrmStore()
+  const { addContact, updateContact, accounts } = useCrmStore()
   const { toast } = useToast()
   const {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
-  } = useForm({ defaultValues: { accountId: defaultAccountId } })
+  } = useForm({
+    defaultValues: initialData || { accountId: defaultAccountId },
+  })
   const [isLoadingCep, setIsLoadingCep] = useState(false)
+
+  useEffect(() => {
+    if (initialData) reset(initialData)
+  }, [initialData, reset])
 
   const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '')
@@ -52,12 +61,17 @@ export function ContactForm({
   }
 
   const onSubmit = (data: any) => {
-    addContact({
-      ...data,
-      avatarUrl: `https://img.usecurling.com/ppl/thumbnail?seed=${Math.floor(Math.random() * 100)}`,
-      createdAt: new Date().toISOString(),
-    })
-    toast({ title: 'Contato criado com sucesso!' })
+    if (initialData?.id) {
+      updateContact(initialData.id, { ...data, updatedAt: new Date().toISOString() })
+      toast({ title: 'Contato atualizado com sucesso!' })
+    } else {
+      addContact({
+        ...data,
+        avatarUrl: `https://img.usecurling.com/ppl/thumbnail?seed=${Math.floor(Math.random() * 100)}`,
+        createdAt: new Date().toISOString(),
+      })
+      toast({ title: 'Contato criado com sucesso!' })
+    }
     onSuccess()
   }
 
@@ -106,7 +120,7 @@ export function ContactForm({
           </select>
           {errors.accountId && <span className="text-[10px] text-destructive">Obrigatório</span>}
         </div>
-        <F l="Nome Completo" n="name" r /> <F l="Cargo" n="position" /> <F l="E-mail" n="email" r />{' '}
+        <F l="Nome Completo" n="name" r /> <F l="Cargo" n="position" /> <F l="E-mail" n="email" r />
         <F l="Telefone" n="phone" /> <F l="Celular (WhatsApp)" n="mobile" />{' '}
         <F l="LinkedIn" n="linkedin" />
         <div className="col-span-2 font-semibold text-xs mt-2 border-b pb-1 text-muted-foreground">

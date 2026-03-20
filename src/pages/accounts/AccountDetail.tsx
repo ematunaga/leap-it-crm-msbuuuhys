@@ -15,13 +15,15 @@ import { formatDate, formatMoney } from '@/lib/utils'
 import { ContactForm } from '@/components/contacts/ContactForm'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
 import { ActivityForm } from '@/components/activities/ActivityForm'
+import { AccountForm } from '@/components/accounts/AccountForm'
 import NotFound from '../NotFound'
-import { Plus } from 'lucide-react'
+import { Plus, Edit } from 'lucide-react'
 import { useState } from 'react'
 
 export default function AccountDetail() {
   const { id } = useParams()
   const { accounts, contacts, activities, opps } = useCrmStore()
+  const [openEdit, setOpenEdit] = useState(false)
   const [openOpp, setOpenOpp] = useState(false)
   const [openContact, setOpenContact] = useState(false)
   const [openActivity, setOpenActivity] = useState(false)
@@ -35,31 +37,48 @@ export default function AccountDetail() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
-      <div className="flex items-center gap-4 border-b pb-6">
-        <img
-          src={account.logo || 'https://img.usecurling.com/i?q=company&shape=fill&color=gray'}
-          alt={account.name}
-          className="w-16 h-16 rounded-xl border bg-white p-2 object-contain shadow-sm"
-        />
-        <div>
-          <h1 className="text-3xl font-bold">{account.name}</h1>
-          <div className="flex flex-wrap gap-2 mt-2">
-            <Badge variant="outline" className="capitalize">
-              {account.segment || 'Sem Segmento'}
-            </Badge>
-            <Badge variant="secondary" className="capitalize">
-              Tier {account.accountTier || 'N/A'}
-            </Badge>
-            <Badge variant="outline" className="capitalize bg-muted">
-              {account.status}
-            </Badge>
-            {account.cnpj && (
-              <Badge variant="outline" className="font-mono">
-                {account.cnpj}
+      <div className="flex items-start justify-between border-b pb-6">
+        <div className="flex items-center gap-4">
+          <img
+            src={account.logo || 'https://img.usecurling.com/i?q=company&shape=fill&color=gray'}
+            alt={account.name}
+            className="w-16 h-16 rounded-xl border bg-white p-2 object-contain shadow-sm"
+          />
+          <div>
+            <h1 className="text-3xl font-bold">{account.name}</h1>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="outline" className="capitalize">
+                {account.segment || 'Sem Segmento'}
               </Badge>
-            )}
+              <Badge variant="secondary" className="capitalize">
+                Tier {account.accountTier || 'N/A'}
+              </Badge>
+              <Badge variant="outline" className="capitalize bg-muted">
+                {account.status}
+              </Badge>
+              {account.cnpj && (
+                <Badge variant="outline" className="font-mono">
+                  {account.cnpj}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
+        <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Edit className="w-4 h-4 mr-2" /> Editar Conta
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[700px]">
+            <DialogHeader>
+              <DialogTitle>Editar Conta</DialogTitle>
+            </DialogHeader>
+            <div className="pt-2">
+              <AccountForm initialData={account} onSuccess={() => setOpenEdit(false)} />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Tabs defaultValue="360" className="w-full">
@@ -156,9 +175,8 @@ export default function AccountDetail() {
                     <p className="font-medium">
                       {account.headquartersAddress ? (
                         <>
-                          {account.headquartersAddress} <br />
-                          {account.headquartersCity}/{account.headquartersState} - CEP{' '}
-                          {account.headquartersZip}
+                          {account.headquartersAddress} <br /> {account.headquartersCity}/
+                          {account.headquartersState} - CEP {account.headquartersZip}
                         </>
                       ) : (
                         '-'

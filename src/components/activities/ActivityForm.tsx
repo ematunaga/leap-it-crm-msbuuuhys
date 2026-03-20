@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -13,20 +14,24 @@ export function ActivityForm({
   onSuccess,
   defaultRelatedTo = 'Account',
   defaultRelatedId = '',
+  initialData,
 }: {
   onSuccess: () => void
   defaultRelatedTo?: 'Account' | 'Opportunity' | 'Lead'
   defaultRelatedId?: string
+  initialData?: any
 }) {
-  const { addActivity, accounts, opps, leads } = useCrmStore()
+  const { addActivity, updateActivity, accounts, opps, leads } = useCrmStore()
   const { toast } = useToast()
+
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
-    defaultValues: {
+    defaultValues: initialData || {
       relatedTo: defaultRelatedTo,
       relatedId: defaultRelatedId,
       type: 'Call',
@@ -35,12 +40,21 @@ export function ActivityForm({
     },
   })
 
+  useEffect(() => {
+    if (initialData) reset(initialData)
+  }, [initialData, reset])
+
   const relatedTo = watch('relatedTo')
   const options = relatedTo === 'Account' ? accounts : relatedTo === 'Opportunity' ? opps : leads
 
   const onSubmit = (data: any) => {
-    addActivity(data)
-    toast({ title: 'Atividade registrada com sucesso!' })
+    if (initialData?.id) {
+      updateActivity(initialData.id, data)
+      toast({ title: 'Atividade atualizada com sucesso!' })
+    } else {
+      addActivity(data)
+      toast({ title: 'Atividade registrada com sucesso!' })
+    }
     onSuccess()
   }
 
@@ -95,14 +109,11 @@ export function ActivityForm({
           </select>
           {errors.relatedId && <span className="text-[10px] text-destructive">Obrigatório</span>}
         </div>
-
         <div className="col-span-2">
           <F l="Resumo / Assunto" n="summary" r />
         </div>
-
         <S l="Tipo de Atividade" n="type" opts={TYPES} r />
         <F l="Data" n="date" t="date" r />
-
         <S l="Status" n="status" opts={STATUS} r />
         <S l="Resultado (Opcional)" n="outcome" opts={OUTCOMES} />
       </div>

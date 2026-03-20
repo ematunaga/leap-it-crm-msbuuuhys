@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -35,19 +35,32 @@ const toOpts = (arr: string[]) =>
     label: v ? v.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()) : 'Selecione...',
   }))
 
-export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
-  const { addAccount } = useCrmStore()
+export function AccountForm({
+  onSuccess,
+  initialData,
+}: {
+  onSuccess: () => void
+  initialData?: any
+}) {
+  const { addAccount, updateAccount } = useCrmStore()
   const { toast } = useToast()
   const {
     register,
     handleSubmit,
     setValue,
     control,
+    reset,
     formState: { errors },
-  } = useForm({ defaultValues: { branches: [] } })
+  } = useForm({
+    defaultValues: initialData || { branches: [] },
+  })
   const { fields, append, remove } = useFieldArray({ control, name: 'branches' })
   const [isLoadingCnpj, setIsLoadingCnpj] = useState(false)
   const [loadingBranches, setLoadingBranches] = useState<Record<number, boolean>>({})
+
+  useEffect(() => {
+    if (initialData) reset(initialData)
+  }, [initialData, reset])
 
   const fetchCnpj = async (val: string) => {
     const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${val}`)
@@ -103,12 +116,18 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   const onSubmit = (data: any) => {
-    addAccount({
+    const payload = {
       ...data,
       accountPotential: data.accountPotential ? Number(data.accountPotential) : 0,
-      createdAt: new Date().toISOString(),
-    })
-    toast({ title: 'Conta criada com sucesso!' })
+      updatedAt: new Date().toISOString(),
+    }
+    if (initialData?.id) {
+      updateAccount(initialData.id, payload)
+      toast({ title: 'Conta atualizada com sucesso!' })
+    } else {
+      addAccount({ ...payload, createdAt: new Date().toISOString() })
+      toast({ title: 'Conta criada com sucesso!' })
+    }
     onSuccess()
   }
 
@@ -254,7 +273,7 @@ export function AccountForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
       <div className="flex justify-end pt-2 pb-4">
         <Button type="submit" size="sm">
-          Cadastrar Conta
+          Salvar Conta
         </Button>
       </div>
     </form>
