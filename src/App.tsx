@@ -13,6 +13,7 @@ import PipelineBoard from './pages/pipeline/PipelineBoard'
 import OpportunitiesDashboard from './pages/opportunities/OpportunitiesDashboard'
 import OpportunityDetail from './pages/opportunities/OpportunityDetail'
 import ActivitiesList from './pages/activities/ActivitiesList'
+import ActivityDetail from './pages/activities/ActivityDetail'
 import GenericListWrapper from './pages/shared/GenericListWrapper'
 import { CrmProvider } from './stores/useCrmStore'
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/oportunidades/:id" element={<OpportunityDetail />} />
 
             <Route path="/atividades" element={<ActivitiesList />} />
+            <Route path="/atividades/:id" element={<ActivityDetail />} />
 
             {/* Generics */}
             <Route path="/leads" element={<GenericListWrapper />} />

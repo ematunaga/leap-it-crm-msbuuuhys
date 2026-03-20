@@ -36,18 +36,30 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [contacts, setContacts] = useState<Contact[]>(mockContacts)
   const [opps, setOpps] = useState<Opportunity[]>(mockOpps)
   const [activities, setActivities] = useState<Activity[]>(mockActivities)
-  const [leads] = useState<Lead[]>(mockLeads)
-  const [competitors] = useState<Competitor[]>(mockCompetitors)
-  const [contracts] = useState<Contract[]>(mockContracts)
+  const [leads, setLeads] = useState<Lead[]>(mockLeads)
+  const [competitors, setCompetitors] = useState<Competitor[]>(mockCompetitors)
+  const [contracts, setContracts] = useState<Contract[]>(mockContracts)
 
   useEffect(() => {
     const today = new Date()
     const todayStr = today.toISOString().split('T')[0]
+
     setActivities((prev) =>
-      prev.map((a) =>
-        a.status === 'Pendente' && a.date < todayStr ? { ...a, isOverdue: true } : a,
-      ),
+      prev.map((a) => {
+        const isPending =
+          a.status === 'planejada' || a.status === 'em_andamento' || a.status === 'Pendente'
+        const dateStr =
+          a.scheduledDate?.split('T')[0] ||
+          a.date?.split('T')[0] ||
+          a.createdAt?.split('T')[0] ||
+          todayStr
+        if (isPending && dateStr < todayStr) {
+          return { ...a, isOverdue: true, status: 'atrasada' }
+        }
+        return a
+      }),
     )
+
     setOpps((prev) =>
       prev.map((o) => {
         const stageDate = new Date(o.stageUpdatedAt || o.createdAt || todayStr)
@@ -105,21 +117,32 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const addActivity = (act: Omit<Activity, 'id'>) => {
-    const newAct = { ...act, id: Math.random().toString(36).substr(2, 9) } as Activity
+    const newAct = {
+      ...act,
+      id: Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString(),
+    } as Activity
     setActivities((prev) => [newAct, ...prev])
 
-    if (act.relatedTo === 'Opportunity') {
+    if (act.opportunityId) {
       setOpps((prev) =>
         prev.map((o) => {
-          if (o.id === act.relatedId) {
+          if (o.id === act.opportunityId) {
             let newTemp = o.temperature
-            if (act.outcome === 'Positivo') newTemp = 'quente'
-            if (act.outcome === 'Neutro') newTemp = 'morna'
+            if (act.outcome === 'positivo') newTemp = 'quente'
+            if (act.outcome === 'neutro') newTemp = 'morna'
+            if (act.outcome === 'negativo') newTemp = 'fria'
+
+            const isPendingStatus =
+              act.status === 'planejada' ||
+              act.status === 'em_andamento' ||
+              act.status === 'atrasada'
+
             return {
               ...o,
               temperature: newTemp,
-              ...(act.status === 'Pendente'
-                ? { nextStep: act.summary, nextStepDate: act.date }
+              ...(isPendingStatus && act.summary
+                ? { nextStep: act.summary, nextStepDate: act.scheduledDate }
                 : {}),
             }
           }
@@ -128,9 +151,13 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       )
     }
 
-    if (act.status === 'Concluída' && act.relatedTo === 'Account') {
+    if (act.status === 'concluida' && act.accountId) {
       setAccounts((prev) =>
-        prev.map((a) => (a.id === act.relatedId ? { ...a, lastInteractionAt: act.date } : a)),
+        prev.map((a) =>
+          a.id === act.accountId
+            ? { ...a, lastInteractionAt: act.interactionAt || new Date().toISOString() }
+            : a,
+        ),
       )
     }
   }

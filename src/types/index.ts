@@ -163,14 +163,94 @@ export interface Opportunity {
 
 export interface Activity {
   id: string
-  relatedTo: 'Account' | 'Opportunity' | 'Lead'
-  relatedId: string
-  type: 'Call' | 'Email' | 'Meeting' | 'Note' | string
-  date: string
-  status: 'Pendente' | 'Concluída' | string
+  ownerId?: string
+  ownerEmail?: string
+  ownerName?: string
+
+  accountId?: string
+  accountName?: string
+  contactId?: string
+  contactName?: string
+  opportunityId?: string
+  opportunityTitle?: string
+  leadId?: string
+
+  type:
+    | 'call'
+    | 'email'
+    | 'whatsapp'
+    | 'meeting'
+    | 'follow_up'
+    | 'proposal_sent'
+    | 'proposal_review'
+    | 'visit'
+    | 'task'
+    | 'note'
+    | string
+  channel:
+    | 'telefone'
+    | 'email'
+    | 'whatsapp'
+    | 'linkedin'
+    | 'reuniao_online'
+    | 'reuniao_presencial'
+    | 'interno'
+    | 'outro'
+    | string
+
+  subject: string
   summary: string
-  outcome?: 'Positivo' | 'Neutro' | 'Negativo' | string
+  details?: string
+
+  outcome?:
+    | 'positivo'
+    | 'neutro'
+    | 'negativo'
+    | 'sem_resposta'
+    | 'reagendado'
+    | 'cancelado'
+    | 'concluido'
+    | string
+  engagementLevel?: 'baixo' | 'medio' | 'alto' | string
+
+  interactionAt?: string
+  scheduledDate?: string
+  nextStepDate?: string
+
+  status: 'planejada' | 'em_andamento' | 'concluida' | 'cancelada' | 'atrasada' | string
+  priority?: 'baixa' | 'media' | 'alta' | 'critica' | string
+  completed?: boolean
+  completedAt?: string
   isOverdue?: boolean
+
+  durationMinutes?: number
+  location?: string
+  attendees?: string[]
+
+  objections?: string
+  customerSignals?: string
+
+  nextStep?: string
+
+  sourceEntity?:
+    | 'lead'
+    | 'contact'
+    | 'company'
+    | 'opportunity'
+    | 'proposal'
+    | 'ticket'
+    | 'manual'
+    | string
+  attachments?: { name: string; url: string }[]
+
+  createdAt?: string
+  updatedAt?: string
+  notes?: string
+
+  // Legacy fields mapped dynamically or kept for backwards compatibility where necessary
+  relatedTo?: string
+  relatedId?: string
+  date?: string
 }
 
 export interface Lead {
