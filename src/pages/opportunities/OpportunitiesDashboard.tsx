@@ -10,37 +10,24 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-} from 'recharts'
-import { Briefcase, DollarSign, Target, Plus } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts'
+import { Briefcase, DollarSign, Target, Plus, Edit, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { formatMoney, formatDate } from '@/lib/utils'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
+import { useToast } from '@/hooks/use-toast'
 
 const COLORS = ['#2563eb', '#f59e0b', '#e11d48', '#10b981', '#8b5cf6', '#6366f1', '#14b8a6']
 
 export default function OpportunitiesDashboard() {
-  const { opps, accounts } = useCrmStore()
+  const { opps, accounts, deleteOpportunity } = useCrmStore()
+  const { toast } = useToast()
   const [year, setYear] = useState<string>('todos')
   const [quarter, setQuarter] = useState<string>('todos')
   const [openOpp, setOpenOpp] = useState(false)
+  const [editOpp, setEditOpp] = useState<any>(null)
 
   const filteredOpps = useMemo(() => {
     return opps.filter((o) => {
@@ -122,21 +109,14 @@ export default function OpportunitiesDashboard() {
               <SelectItem value="Q4">Q4 (Out-Dez)</SelectItem>
             </SelectContent>
           </Select>
-          <Dialog open={openOpp} onOpenChange={setOpenOpp}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px]">
-              <DialogHeader>
-                <DialogTitle>Nova Oportunidade</DialogTitle>
-              </DialogHeader>
-              <div className="pt-2">
-                <OpportunityForm onSuccess={() => setOpenOpp(false)} />
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => {
+              setEditOpp(null)
+              setOpenOpp(true)
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
+          </Button>
         </div>
       </div>
 
@@ -250,7 +230,8 @@ export default function OpportunitiesDashboard() {
                   <th className="px-4 py-3">Fabricante</th>
                   <th className="px-4 py-3">Fase</th>
                   <th className="px-4 py-3 text-right">Fechamento</th>
-                  <th className="px-4 py-3 text-right rounded-tr-md">Valor</th>
+                  <th className="px-4 py-3 text-right">Valor</th>
+                  <th className="px-4 py-3 text-right rounded-tr-md"></th>
                 </tr>
               </thead>
               <tbody>
@@ -283,12 +264,40 @@ export default function OpportunitiesDashboard() {
                         <td className="px-4 py-3 text-right font-mono font-medium">
                           {formatMoney(o.value)}
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => {
+                                setEditOpp(o)
+                                setOpenOpp(true)
+                              }}
+                            >
+                              <Edit className="w-4 h-4 text-muted-foreground" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => {
+                                if (window.confirm('Excluir oportunidade permanentemente?')) {
+                                  deleteOpportunity(o.id)
+                                  toast({ title: 'Oportunidade excluída.' })
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </td>
                       </tr>
                     )
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhuma oportunidade encontrada com os filtros atuais.
                     </td>
                   </tr>
@@ -298,6 +307,17 @@ export default function OpportunitiesDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={openOpp} onOpenChange={setOpenOpp}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>{editOpp ? 'Editar Oportunidade' : 'Nova Oportunidade'}</DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <OpportunityForm initialData={editOpp} onSuccess={() => setOpenOpp(false)} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

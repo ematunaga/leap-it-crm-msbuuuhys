@@ -17,6 +17,7 @@ import ActivityDetail from './pages/activities/ActivityDetail'
 import GenericListWrapper from './pages/shared/GenericListWrapper'
 import SettingsDashboard from './pages/settings/SettingsDashboard'
 import UsersList from './pages/users/UsersList'
+import UserProfile from './pages/settings/UserProfile'
 import { CrmProvider } from './stores/useCrmStore'
 
 const App = () => (
@@ -44,6 +45,7 @@ const App = () => (
             {/* Administracao / Seguranca */}
             <Route path="/usuarios" element={<UsersList />} />
             <Route path="/configuracoes" element={<SettingsDashboard />} />
+            <Route path="/meu-perfil" element={<UserProfile />} />
 
             {/* Generics */}
             <Route path="/leads" element={<GenericListWrapper />} />

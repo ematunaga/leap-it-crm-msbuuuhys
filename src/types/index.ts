@@ -344,4 +344,5 @@ export interface AppUser {
   syncStatus: 'synced' | 'pending' | 'error' | string
   lastSyncAt?: string
   createdAt?: string
+  password?: string
 }

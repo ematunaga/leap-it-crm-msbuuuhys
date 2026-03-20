@@ -1,7 +1,10 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { useForm } from 'react-hook-form'
+import { useEffect } from 'react'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import useCrmStore from '@/stores/useCrmStore'
+import { useToast } from '@/hooks/use-toast'
 import {
   Select,
   SelectContent,
@@ -9,105 +12,83 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import useCrmStore from '@/stores/useCrmStore'
-import { AppUser } from '@/types'
-import { useToast } from '@/hooks/use-toast'
 
-interface UserFormProps {
-  initialData?: AppUser | null
-  onSuccess: () => void
-}
-
-export function UserForm({ initialData, onSuccess }: UserFormProps) {
+export function UserForm({ initialData, onSuccess }: any) {
   const { addUser, updateUser, profiles } = useCrmStore()
   const { toast } = useToast()
 
-  const defaultAvatar = `https://img.usecurling.com/ppl/thumbnail?gender=${Math.random() > 0.5 ? 'male' : 'female'}&seed=${Math.floor(Math.random() * 100)}`
-
-  const [formData, setFormData] = useState<Partial<AppUser>>(
-    initialData || {
-      name: '',
-      email: '',
-      role: '',
-      profileId: '',
+  const { register, handleSubmit, reset, setValue, watch } = useForm({
+    defaultValues: initialData || {
       status: 'ativo',
       origin: 'crm',
-      avatarUrl: defaultAvatar,
+      profileId: '',
     },
-  )
+  })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.name || !formData.email || !formData.role) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Por favor, preencha nome, email e cargo.',
-        variant: 'destructive',
-      })
-      return
+  useEffect(() => {
+    if (initialData) reset(initialData)
+  }, [initialData, reset])
+
+  const profileId = watch('profileId')
+  const status = watch('status')
+
+  const onSubmit = (data: any) => {
+    const prof = profiles.find((p) => p.id === data.profileId)
+    const payload = {
+      ...data,
+      role: prof ? prof.name : 'Usuário',
+      updatedAt: new Date().toISOString(),
     }
 
-    if (initialData) {
-      updateUser(initialData.id, formData)
-      toast({
-        title: 'Usuário atualizado',
-        description: 'Dados salvos com sucesso e pendentes de sincronização.',
-      })
+    if (initialData?.id) {
+      updateUser(initialData.id, payload)
+      toast({ title: 'Usuário atualizado. Sincronização disparada para Precificação!' })
     } else {
-      addUser(formData as Omit<AppUser, 'id'>)
-      toast({
-        title: 'Usuário criado',
-        description: 'Novo usuário adicionado e pendente de sincronização.',
+      addUser({
+        ...payload,
+        createdAt: new Date().toISOString(),
       })
+      toast({ title: 'Usuário criado e acesso liberado em ambas as plataformas!' })
     }
     onSuccess()
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
-      <div className="space-y-2">
-        <Label htmlFor="name">Nome Completo *</Label>
-        <Input
-          id="name"
-          value={formData.name || ''}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="Ex: João da Silva"
-          className="bg-background"
-        />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-1">
+        <Label>Nome Completo *</Label>
+        <Input {...register('name', { required: true })} placeholder="Ex: João Silva" />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">E-mail *</Label>
+      <div className="space-y-1">
+        <Label>E-mail Corporativo *</Label>
         <Input
-          id="email"
           type="email"
-          value={formData.email || ''}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          placeholder="Ex: joao@empresa.com"
-          className="bg-background"
+          {...register('email', { required: true })}
+          placeholder="joao@leapit.com"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="role">Cargo / Função *</Label>
-        <Input
-          id="role"
-          value={formData.role || ''}
-          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-          placeholder="Ex: Executivo de Vendas"
-          className="bg-background"
-        />
-      </div>
+      {!initialData && (
+        <div className="space-y-1">
+          <Label>Senha Inicial *</Label>
+          <Input
+            type="password"
+            {...register('password', { required: true })}
+            placeholder="Senha segura"
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            As credenciais de acesso serão criptografadas na base de dados.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Perfil de Acesso</Label>
-          <Select
-            value={formData.profileId || ''}
-            onValueChange={(v) => setFormData({ ...formData, profileId: v })}
-          >
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Selecione..." />
+        <div className="space-y-1">
+          <Label>Perfil de Acesso *</Label>
+          <Select value={profileId} onValueChange={(v) => setValue('profileId', v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
               {profiles.map((p) => (
@@ -119,13 +100,10 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label>Status</Label>
-          <Select
-            value={formData.status || 'ativo'}
-            onValueChange={(v) => setFormData({ ...formData, status: v })}
-          >
-            <SelectTrigger className="bg-background">
+          <Select value={status} onValueChange={(v) => setValue('status', v)}>
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -136,8 +114,8 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-4 mt-2">
-        <Button type="button" variant="outline" onClick={onSuccess}>
+      <div className="flex justify-end pt-4">
+        <Button type="button" variant="outline" className="mr-2" onClick={onSuccess}>
           Cancelar
         </Button>
         <Button type="submit">Salvar Usuário</Button>

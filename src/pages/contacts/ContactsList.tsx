@@ -1,23 +1,19 @@
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { GenericDataTable } from '../shared/GenericDataTable'
 import { ContactForm } from '@/components/contacts/ContactForm'
 import useCrmStore from '@/stores/useCrmStore'
 import { Contact } from '@/types'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 
 export default function ContactsList() {
-  const { contacts, accounts } = useCrmStore()
+  const { contacts, accounts, deleteContact } = useCrmStore()
   const [open, setOpen] = useState(false)
+  const { toast } = useToast()
 
   const columns = [
     {
@@ -81,34 +77,54 @@ export default function ContactsList() {
         </div>
       ),
     },
+    {
+      key: 'actions',
+      label: '',
+      render: (_: any, c: Contact) => (
+        <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              if (window.confirm('Tem certeza que deseja excluir este contato?')) {
+                deleteContact(c.id)
+                toast({ title: 'Contato excluído com sucesso.' })
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
+      ),
+    },
   ]
 
   const actions = (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Novo Contato
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Novo Contato</DialogTitle>
-        </DialogHeader>
-        <div className="pt-2">
-          <ContactForm onSuccess={() => setOpen(false)} />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Button onClick={() => setOpen(true)}>
+      <Plus className="mr-2 h-4 w-4" /> Novo Contato
+    </Button>
   )
 
   return (
-    <GenericDataTable
-      title="Contatos"
-      subtitle="Diretório de stakeholders e comitês de compra."
-      data={contacts}
-      columns={columns}
-      searchKey="name"
-      actions={actions}
-    />
+    <>
+      <GenericDataTable
+        title="Contatos"
+        subtitle="Diretório de stakeholders e comitês de compra."
+        data={contacts}
+        columns={columns}
+        searchKey="name"
+        actions={actions}
+      />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Novo Contato</DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <ContactForm onSuccess={() => setOpen(false)} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

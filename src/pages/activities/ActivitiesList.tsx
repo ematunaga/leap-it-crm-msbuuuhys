@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/button'
 import { formatDate } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ActivityForm } from '@/components/activities/ActivityForm'
-import { Plus, Edit, Calendar, Eye, LayoutList, Clock } from 'lucide-react'
+import { Plus, Edit, Calendar, Eye, LayoutList, Clock, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
+import { useToast } from '@/hooks/use-toast'
 
 export default function ActivitiesList() {
-  const { activities } = useCrmStore()
+  const { activities, deleteActivity } = useCrmStore()
+  const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<Activity | null>(null)
   const [viewMode, setViewMode] = useState('timeline')
@@ -71,7 +73,7 @@ export default function ActivitiesList() {
       key: 'actions',
       label: 'Ações',
       render: (_: any, a: Activity) => (
-        <div className="flex gap-1">
+        <div className="flex gap-1 justify-end">
           <Link to={`/atividades/${a.id}`}>
             <Button variant="ghost" size="icon">
               <Eye className="w-4 h-4 text-muted-foreground" />
@@ -79,6 +81,18 @@ export default function ActivitiesList() {
           </Link>
           <Button variant="ghost" size="icon" onClick={() => handleEdit(a)}>
             <Edit className="w-4 h-4 text-muted-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              if (window.confirm('Excluir esta atividade?')) {
+                deleteActivity(a.id)
+                toast({ title: 'Atividade excluída com sucesso.' })
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
           </Button>
         </div>
       ),
@@ -161,9 +175,33 @@ export default function ActivitiesList() {
                 </div>
 
                 <div className="flex-1 pb-8">
-                  <Card className="hover:shadow-md transition-shadow">
+                  <Card className="hover:shadow-md transition-shadow relative">
                     <CardContent className="p-4 sm:p-5">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                      <div className="absolute top-4 right-4 flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleEdit(act)}
+                        >
+                          <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            if (window.confirm('Excluir esta atividade?')) {
+                              deleteActivity(act.id)
+                              toast({ title: 'Atividade excluída com sucesso.' })
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                        </Button>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pr-16">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className="uppercase text-[10px] tracking-wider">
                             {act.type?.replace(/_/g, ' ')}

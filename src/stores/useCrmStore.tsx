@@ -35,12 +35,16 @@ interface CrmStore {
   updateOppStage: (id: string, stage: string) => void
   addActivity: (activity: Omit<Activity, 'id'>) => void
   updateActivity: (id: string, updates: Partial<Activity>) => void
+  deleteActivity: (id: string) => void
   addAccount: (account: Omit<Account, 'id'>) => void
   updateAccount: (id: string, updates: Partial<Account>) => void
+  deleteAccount: (id: string) => void
   addContact: (contact: Omit<Contact, 'id'>) => void
   updateContact: (id: string, updates: Partial<Contact>) => void
+  deleteContact: (id: string) => void
   addOpportunity: (opp: Omit<Opportunity, 'id'>) => void
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
+  deleteOpportunity: (id: string) => void
   addProfile: (profile: Omit<AccessProfile, 'id'>) => void
   updateProfile: (id: string, updates: Partial<AccessProfile>) => void
   addUser: (user: Omit<AppUser, 'id'>) => void
@@ -105,16 +109,32 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     setOpps((prev) => prev.map((o) => (o.id === id ? { ...o, ...updates } : o)))
   }
 
+  const deleteOpportunity = (id: string) => {
+    setOpps((prev) => prev.filter((o) => o.id !== id))
+  }
+
   const updateAccount = (id: string, updates: Partial<Account>) => {
     setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)))
+  }
+
+  const deleteAccount = (id: string) => {
+    setAccounts((prev) => prev.filter((a) => a.id !== id))
   }
 
   const updateContact = (id: string, updates: Partial<Contact>) => {
     setContacts((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)))
   }
 
+  const deleteContact = (id: string) => {
+    setContacts((prev) => prev.filter((c) => c.id !== id))
+  }
+
   const updateActivity = (id: string, updates: Partial<Activity>) => {
     setActivities((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)))
+  }
+
+  const deleteActivity = (id: string) => {
+    setActivities((prev) => prev.filter((a) => a.id !== id))
   }
 
   const updateProfile = (id: string, updates: Partial<AccessProfile>) => {
@@ -126,19 +146,19 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const addAccount = (acc: Omit<Account, 'id'>) => {
-    const newAcc = { ...acc, id: Math.random().toString(36).substr(2, 9) } as Account
+    const newAcc = { ...acc, id: Math.random().toString(36).substring(2, 9) } as Account
     setAccounts((prev) => [newAcc, ...prev])
   }
 
   const addContact = (contact: Omit<Contact, 'id'>) => {
-    const newContact = { ...contact, id: Math.random().toString(36).substr(2, 9) } as Contact
+    const newContact = { ...contact, id: Math.random().toString(36).substring(2, 9) } as Contact
     setContacts((prev) => [newContact, ...prev])
   }
 
   const addOpportunity = (opp: Omit<Opportunity, 'id'>) => {
     const newOpp = {
       ...opp,
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 9),
       createdAt: new Date().toISOString(),
       stageUpdatedAt: new Date().toISOString(),
       daysInStage: 0,
@@ -149,7 +169,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const addProfile = (profile: Omit<AccessProfile, 'id'>) => {
     const newProfile = {
       ...profile,
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 9),
       createdAt: new Date().toISOString(),
     } as AccessProfile
     setProfiles((prev) => [newProfile, ...prev])
@@ -158,7 +178,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const addUser = (user: Omit<AppUser, 'id'>) => {
     const newUser = {
       ...user,
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 9),
       createdAt: new Date().toISOString(),
       syncStatus: 'pending',
     } as AppUser
@@ -178,7 +198,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const addActivity = (act: Omit<Activity, 'id'>) => {
     const newAct = {
       ...act,
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 9),
       createdAt: new Date().toISOString(),
     } as Activity
     setActivities((prev) => [newAct, ...prev])
@@ -250,11 +270,15 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       updateOppStage,
       addActivity,
       updateActivity,
+      deleteActivity,
       updateOpportunity,
+      deleteOpportunity,
       addAccount,
       updateAccount,
+      deleteAccount,
       addContact,
       updateContact,
+      deleteContact,
       addOpportunity,
       addProfile,
       updateProfile,

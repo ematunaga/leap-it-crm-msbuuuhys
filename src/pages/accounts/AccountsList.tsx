@@ -1,23 +1,19 @@
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { GenericDataTable } from '../shared/GenericDataTable'
 import { AccountForm } from '@/components/accounts/AccountForm'
 import useCrmStore from '@/stores/useCrmStore'
 import { Account } from '@/types'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
 
 export default function AccountsList() {
-  const { accounts } = useCrmStore()
+  const { accounts, deleteAccount } = useCrmStore()
   const [open, setOpen] = useState(false)
+  const { toast } = useToast()
 
   const columns = [
     {
@@ -106,45 +102,57 @@ export default function AccountsList() {
       },
     },
     {
-      key: 'mainPain',
-      label: 'Dor Principal',
+      key: 'actions',
+      label: '',
       render: (_: any, acc: Account) => (
-        <span
-          className="text-[11px] text-muted-foreground line-clamp-2 max-w-[180px]"
-          title={acc.mainPain}
-        >
-          {acc.mainPain || '-'}
-        </span>
+        <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              if (
+                window.confirm(
+                  'Tem certeza que deseja excluir esta conta? Todas as oportunidades associadas ficarão orfãs.',
+                )
+              ) {
+                deleteAccount(acc.id)
+                toast({ title: 'Conta excluída com sucesso.' })
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
       ),
     },
   ]
 
   const actions = (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Nova Conta
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px]">
-        <DialogHeader>
-          <DialogTitle>Cadastro Completo de Conta</DialogTitle>
-        </DialogHeader>
-        <div className="pt-2">
-          <AccountForm onSuccess={() => setOpen(false)} />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Button onClick={() => setOpen(true)}>
+      <Plus className="mr-2 h-4 w-4" /> Nova Conta
+    </Button>
   )
 
   return (
-    <GenericDataTable
-      title="Contas"
-      subtitle="Gerenciamento de contas e portfólio de clientes."
-      data={accounts}
-      columns={columns}
-      searchKey="name"
-      actions={actions}
-    />
+    <>
+      <GenericDataTable
+        title="Contas"
+        subtitle="Gerenciamento de contas e portfólio de clientes."
+        data={accounts}
+        columns={columns}
+        searchKey="name"
+        actions={actions}
+      />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Cadastro Completo de Conta</DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <AccountForm onSuccess={() => setOpen(false)} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
