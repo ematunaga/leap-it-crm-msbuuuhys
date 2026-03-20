@@ -41,15 +41,30 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [contracts] = useState<Contract[]>(mockContracts)
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date()
+    const todayStr = today.toISOString().split('T')[0]
     setActivities((prev) =>
-      prev.map((a) => (a.status === 'Pendente' && a.date < today ? { ...a, isOverdue: true } : a)),
+      prev.map((a) =>
+        a.status === 'Pendente' && a.date < todayStr ? { ...a, isOverdue: true } : a,
+      ),
     )
-    setOpps((prev) => prev.map((o) => (o.nextStepDate < today ? { ...o, isOverdue: true } : o)))
+    setOpps((prev) =>
+      prev.map((o) => {
+        const stageDate = new Date(o.stageUpdatedAt || o.createdAt || todayStr)
+        const diffTime = Math.abs(today.getTime() - stageDate.getTime())
+        const daysInStage = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        const isOverdue = !!(o.nextStepDate && o.nextStepDate < todayStr)
+        return { ...o, daysInStage, isOverdue }
+      }),
+    )
   }, [])
 
   const updateOppStage = (id: string, stage: string) => {
-    setOpps((prev) => prev.map((o) => (o.id === id ? { ...o, stage } : o)))
+    setOpps((prev) =>
+      prev.map((o) =>
+        o.id === id ? { ...o, stage, stageUpdatedAt: new Date().toISOString(), daysInStage: 0 } : o,
+      ),
+    )
   }
 
   const updateOpportunity = (id: string, updates: Partial<Opportunity>) => {
@@ -79,7 +94,13 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const addOpportunity = (opp: Omit<Opportunity, 'id'>) => {
-    const newOpp = { ...opp, id: Math.random().toString(36).substr(2, 9) } as Opportunity
+    const newOpp = {
+      ...opp,
+      id: Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString(),
+      stageUpdatedAt: new Date().toISOString(),
+      daysInStage: 0,
+    } as Opportunity
     setOpps((prev) => [newOpp, ...prev])
   }
 

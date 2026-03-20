@@ -10,6 +10,7 @@ import AccountDetail from './pages/accounts/AccountDetail'
 import ContactsList from './pages/contacts/ContactsList'
 import ContactDetail from './pages/contacts/ContactDetail'
 import PipelineBoard from './pages/pipeline/PipelineBoard'
+import OpportunitiesDashboard from './pages/opportunities/OpportunitiesDashboard'
 import OpportunityDetail from './pages/opportunities/OpportunityDetail'
 import ActivitiesList from './pages/activities/ActivitiesList'
 import GenericListWrapper from './pages/shared/GenericListWrapper'
@@ -30,7 +31,7 @@ const App = () => (
             <Route path="/contatos" element={<ContactsList />} />
             <Route path="/contatos/:id" element={<ContactDetail />} />
 
-            <Route path="/oportunidades" element={<PipelineBoard />} />
+            <Route path="/oportunidades" element={<OpportunitiesDashboard />} />
             <Route path="/pipeline" element={<PipelineBoard />} />
             <Route path="/oportunidades/:id" element={<OpportunityDetail />} />
 

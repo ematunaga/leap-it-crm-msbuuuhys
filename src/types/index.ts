@@ -129,6 +129,7 @@ export interface Opportunity {
   lastInteractionAt?: string
   lastInteractionSummary?: string
   daysInStage?: number
+  stageUpdatedAt?: string
   statusFollowUp?: string
   isOverdue?: boolean
 

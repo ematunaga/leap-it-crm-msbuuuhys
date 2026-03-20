@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import useCrmStore from '@/stores/useCrmStore'
 import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 
 const OPTS = {
   currency: ['BRL', 'USD'],
@@ -39,6 +40,8 @@ export function OpportunityForm({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: initialData || {
@@ -53,6 +56,39 @@ export function OpportunityForm({
   useEffect(() => {
     if (initialData) reset(initialData)
   }, [initialData, reset])
+
+  const watchValues = watch([
+    'value',
+    'totalCost',
+    'icmsHardwarePercent',
+    'icmsSoftwarePercent',
+    'issHardwarePercent',
+    'issSoftwarePercent',
+    'pisCofinsPercent',
+    'ipiPercent',
+    'sellerCommissionPercent',
+  ])
+
+  useEffect(() => {
+    const [value, totalCost, icmsH, icmsS, issH, issS, pis, ipi, comm] = watchValues
+    const v = Number(value) || 0
+    const c = Number(totalCost) || 0
+    if (v > 0) {
+      const taxesPct =
+        (Number(icmsH) || 0) +
+        (Number(icmsS) || 0) +
+        (Number(issH) || 0) +
+        (Number(issS) || 0) +
+        (Number(pis) || 0) +
+        (Number(ipi) || 0) +
+        (Number(comm) || 0)
+
+      const margin = ((v - c) / v) * 100 - taxesPct
+      if (isFinite(margin)) {
+        setValue('netMarginPercent', parseFloat(margin.toFixed(2)), { shouldDirty: true })
+      }
+    }
+  }, [watchValues, setValue])
 
   const onSubmit = (data: any) => {
     const payload = {
@@ -71,16 +107,23 @@ export function OpportunityForm({
     onSuccess()
   }
 
-  const F = ({ l, n, r, t = 'text', step }: any) => (
+  const F = ({ l, n, r, t = 'text', step, readOnly, className }: any) => (
     <div className="space-y-1">
       <Label className="text-[11px]">
         {l}
         {r && ' *'}
       </Label>
-      <Input type={t} step={step} className="h-8 text-xs" {...register(n, { required: r })} />
+      <Input
+        type={t}
+        step={step}
+        readOnly={readOnly}
+        className={cn('h-8 text-xs', className)}
+        {...register(n, { required: r })}
+      />
       {errors[n] && <span className="text-[10px] text-destructive">Obrigatório</span>}
     </div>
   )
+
   const S = ({ l, n, opts, r }: any) => (
     <div className="space-y-1">
       <Label className="text-[11px]">
@@ -155,7 +198,13 @@ export function OpportunityForm({
         <TabsContent value="dinamica" className="grid grid-cols-2 gap-3 pt-2">
           <F l="Probabilidade (%)" n="winProbability" t="number" step="1" />
           <S l="Nível de Risco" n="riskLevel" opts={OPTS.riskLevel} />
-          <F l="Dias no Estágio" n="daysInStage" t="number" />
+          <F
+            l="Dias no Estágio (Auto)"
+            n="daysInStage"
+            t="number"
+            readOnly
+            className="bg-muted text-muted-foreground"
+          />
           <S l="Status Follow-up" n="statusFollowUp" opts={OPTS.statusFollowUp} />
           <F l="Resumo Última Interação" n="lastInteractionSummary" />
           <F l="Data Última Interação" n="lastInteractionAt" t="date" />
@@ -183,7 +232,14 @@ export function OpportunityForm({
           <F l="PIS/COFINS (%)" n="pisCofinsPercent" t="number" step="0.01" />
           <F l="ISS Software (%)" n="issSoftwarePercent" t="number" step="0.01" />
           <F l="Comissão Vendedor (%)" n="sellerCommissionPercent" t="number" step="0.01" />
-          <F l="Margem Líquida (%)" n="netMarginPercent" t="number" step="0.01" />
+          <F
+            l="Margem Líquida (%) Auto"
+            n="netMarginPercent"
+            t="number"
+            step="0.01"
+            readOnly
+            className="bg-muted text-muted-foreground"
+          />
         </TabsContent>
 
         <TabsContent value="pos" className="grid grid-cols-2 gap-3 pt-2">
