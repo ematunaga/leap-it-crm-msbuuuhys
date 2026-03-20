@@ -19,18 +19,27 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoadingLogin(true)
-    const { error } = await signIn(email, password)
-    if (error) {
+    try {
+      const { error } = await signIn(email, password)
+      if (error) {
+        toast({
+          title: 'Acesso Negado',
+          description: 'Verifique suas credenciais e tente novamente.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({ title: 'Login realizado com sucesso!' })
+        navigate('/')
+      }
+    } catch (err) {
       toast({
         title: 'Acesso Negado',
         description: 'Verifique suas credenciais e tente novamente.',
         variant: 'destructive',
       })
-    } else {
-      toast({ title: 'Login realizado com sucesso!' })
-      navigate('/')
+    } finally {
+      setLoadingLogin(false)
     }
-    setLoadingLogin(false)
   }
 
   return (
