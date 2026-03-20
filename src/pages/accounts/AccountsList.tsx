@@ -1,12 +1,24 @@
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { GenericDataTable } from '../shared/GenericDataTable'
+import { AccountForm } from '@/components/accounts/AccountForm'
 import useCrmStore from '@/stores/useCrmStore'
 import { Account } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
 
 export default function AccountsList() {
   const { accounts } = useCrmStore()
+  const [open, setOpen] = useState(false)
 
   const columns = [
     {
@@ -61,6 +73,24 @@ export default function AccountsList() {
     },
   ]
 
+  const actions = (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" /> Nova Conta
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Cadastro Rápido de Conta</DialogTitle>
+        </DialogHeader>
+        <div className="pt-4">
+          <AccountForm onSuccess={() => setOpen(false)} />
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+
   return (
     <GenericDataTable
       title="Contas"
@@ -68,6 +98,7 @@ export default function AccountsList() {
       data={accounts}
       columns={columns}
       searchKey="name"
+      actions={actions}
     />
   )
 }

@@ -1,14 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react'
-import {
-  Account,
-  Activity,
-  Competitor,
-  Contact,
-  Contract,
-  Lead,
-  Opportunity,
-  Proposal,
-} from '@/types'
+import { Account, Activity, Competitor, Contact, Contract, Lead, Opportunity } from '@/types'
 import {
   mockAccounts,
   mockActivities,
@@ -30,6 +21,7 @@ interface CrmStore {
   updateOppStage: (id: string, stage: Opportunity['stage']) => void
   addActivity: (activity: Omit<Activity, 'id'>) => void
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
+  addAccount: (account: Omit<Account, 'id'>) => void
 }
 
 const CrmContext = createContext<CrmStore | null>(null)
@@ -59,6 +51,11 @@ export function CrmProvider({ children }: { children: ReactNode }) {
 
   const updateOpportunity = (id: string, updates: Partial<Opportunity>) => {
     setOpps((prev) => prev.map((o) => (o.id === id ? { ...o, ...updates } : o)))
+  }
+
+  const addAccount = (acc: Omit<Account, 'id'>) => {
+    const newAcc = { ...acc, id: Math.random().toString(36).substr(2, 9) } as Account
+    setAccounts((prev) => [newAcc, ...prev])
   }
 
   const addActivity = (act: Omit<Activity, 'id'>) => {
@@ -105,6 +102,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       updateOppStage,
       addActivity,
       updateOpportunity,
+      addAccount,
     }),
     [accounts, contacts, opps, activities, leads, competitors, contracts],
   )

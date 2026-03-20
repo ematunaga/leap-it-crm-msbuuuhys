@@ -22,6 +22,7 @@ interface GenericDataTableProps<T> {
   data: T[]
   columns: Column<T>[]
   searchKey?: keyof T
+  actions?: React.ReactNode
 }
 
 export function GenericDataTable<T>({
@@ -30,6 +31,7 @@ export function GenericDataTable<T>({
   data,
   columns,
   searchKey,
+  actions,
 }: GenericDataTableProps<T>) {
   const [search, setSearch] = useState('')
 
@@ -46,17 +48,20 @@ export function GenericDataTable<T>({
           <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
           {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
         </div>
-        {searchKey && (
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar..."
-              className="pl-9 bg-background"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        )}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {searchKey && (
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                className="pl-9 bg-background"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          )}
+          {actions}
+        </div>
       </div>
 
       <div className="rounded-xl border bg-card shadow-subtle overflow-hidden">
