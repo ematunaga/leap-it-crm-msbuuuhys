@@ -2,13 +2,29 @@ import { Link, useParams } from 'react-router-dom'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import useCrmStore from '@/stores/useCrmStore'
 import { formatDate, formatMoney } from '@/lib/utils'
+import { ContactForm } from '@/components/contacts/ContactForm'
+import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
+import { ActivityForm } from '@/components/activities/ActivityForm'
 import NotFound from '../NotFound'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
 
 export default function AccountDetail() {
   const { id } = useParams()
   const { accounts, contacts, activities, opps } = useCrmStore()
+  const [openOpp, setOpenOpp] = useState(false)
+  const [openContact, setOpenContact] = useState(false)
+  const [openActivity, setOpenActivity] = useState(false)
 
   const account = accounts.find((a) => a.id === id)
   if (!account) return <NotFound />
@@ -263,7 +279,28 @@ export default function AccountDetail() {
           )}
         </TabsContent>
 
-        <TabsContent value="opportunities" className="mt-4">
+        <TabsContent value="opportunities" className="mt-4 space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <h3 className="font-semibold text-lg">Oportunidades em Andamento</h3>
+            <Dialog open={openOpp} onOpenChange={setOpenOpp}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-1" /> Nova
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[700px]">
+                <DialogHeader>
+                  <DialogTitle>Nova Oportunidade</DialogTitle>
+                </DialogHeader>
+                <div className="pt-2">
+                  <OpportunityForm
+                    onSuccess={() => setOpenOpp(false)}
+                    defaultAccountId={account.id}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
           {accOpps.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {accOpps.map((o) => (
@@ -311,18 +348,47 @@ export default function AccountDetail() {
           )}
         </TabsContent>
 
-        <TabsContent value="contacts" className="mt-4">
+        <TabsContent value="contacts" className="mt-4 space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <h3 className="font-semibold text-lg">Diretório de Contatos</h3>
+            <Dialog open={openContact} onOpenChange={setOpenContact}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-1" /> Novo
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Novo Contato</DialogTitle>
+                </DialogHeader>
+                <div className="pt-2">
+                  <ContactForm
+                    onSuccess={() => setOpenContact(false)}
+                    defaultAccountId={account.id}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
           {accContacts.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {accContacts.map((c) => (
-                <Card key={c.id} className="shadow-subtle flex items-center p-4 gap-4">
+                <Card
+                  key={c.id}
+                  className="shadow-subtle flex items-center p-4 gap-4 hover:border-primary/50 transition-colors"
+                >
                   <img
                     src={c.avatarUrl}
                     className="w-12 h-12 rounded-full bg-muted object-cover border"
                     alt={c.name}
                   />
                   <div>
-                    <p className="font-bold">{c.name}</p>
+                    <Link
+                      to={`/contatos/${c.id}`}
+                      className="font-bold hover:underline hover:text-primary"
+                    >
+                      {c.name}
+                    </Link>
                     <p className="text-sm text-muted-foreground">{c.position || 'Sem cargo'}</p>
                     <div className="flex gap-1 mt-1">
                       <Badge variant="outline" className="text-[10px] capitalize py-0">
@@ -343,7 +409,29 @@ export default function AccountDetail() {
           )}
         </TabsContent>
 
-        <TabsContent value="timeline" className="mt-4">
+        <TabsContent value="timeline" className="mt-4 space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <h3 className="font-semibold text-lg">Histórico de Atividades</h3>
+            <Dialog open={openActivity} onOpenChange={setOpenActivity}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-1" /> Registrar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Registrar Atividade</DialogTitle>
+                </DialogHeader>
+                <div className="pt-2">
+                  <ActivityForm
+                    onSuccess={() => setOpenActivity(false)}
+                    defaultRelatedTo="Account"
+                    defaultRelatedId={account.id}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
           <Card className="shadow-subtle">
             <CardContent className="pt-6">
               {accActivities.length === 0 ? (

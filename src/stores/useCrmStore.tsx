@@ -22,6 +22,8 @@ interface CrmStore {
   addActivity: (activity: Omit<Activity, 'id'>) => void
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
   addAccount: (account: Omit<Account, 'id'>) => void
+  addContact: (contact: Omit<Contact, 'id'>) => void
+  addOpportunity: (opp: Omit<Opportunity, 'id'>) => void
 }
 
 const CrmContext = createContext<CrmStore | null>(null)
@@ -56,6 +58,16 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const addAccount = (acc: Omit<Account, 'id'>) => {
     const newAcc = { ...acc, id: Math.random().toString(36).substr(2, 9) } as Account
     setAccounts((prev) => [newAcc, ...prev])
+  }
+
+  const addContact = (contact: Omit<Contact, 'id'>) => {
+    const newContact = { ...contact, id: Math.random().toString(36).substr(2, 9) } as Contact
+    setContacts((prev) => [newContact, ...prev])
+  }
+
+  const addOpportunity = (opp: Omit<Opportunity, 'id'>) => {
+    const newOpp = { ...opp, id: Math.random().toString(36).substr(2, 9) } as Opportunity
+    setOpps((prev) => [newOpp, ...prev])
   }
 
   const addActivity = (act: Omit<Activity, 'id'>) => {
@@ -103,6 +115,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       addActivity,
       updateOpportunity,
       addAccount,
+      addContact,
+      addOpportunity,
     }),
     [accounts, contacts, opps, activities, leads, competitors, contracts],
   )

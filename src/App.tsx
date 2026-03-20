@@ -8,6 +8,7 @@ import NotFound from './pages/NotFound'
 import AccountsList from './pages/accounts/AccountsList'
 import AccountDetail from './pages/accounts/AccountDetail'
 import ContactsList from './pages/contacts/ContactsList'
+import ContactDetail from './pages/contacts/ContactDetail'
 import PipelineBoard from './pages/pipeline/PipelineBoard'
 import OpportunityDetail from './pages/opportunities/OpportunityDetail'
 import ActivitiesList from './pages/activities/ActivitiesList'
@@ -25,9 +26,10 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/contas" element={<AccountsList />} />
             <Route path="/contas/:id" element={<AccountDetail />} />
-            <Route path="/contatos" element={<ContactsList />} />
 
-            {/* Oportunidades will just map to Pipeline for visual list, or use generic. Using Generic to save lines, wait, the spec requires "Kanban" for Opps. */}
+            <Route path="/contatos" element={<ContactsList />} />
+            <Route path="/contatos/:id" element={<ContactDetail />} />
+
             <Route path="/oportunidades" element={<PipelineBoard />} />
             <Route path="/pipeline" element={<PipelineBoard />} />
             <Route path="/oportunidades/:id" element={<OpportunityDetail />} />

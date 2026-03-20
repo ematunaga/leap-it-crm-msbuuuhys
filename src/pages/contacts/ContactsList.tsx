@@ -1,45 +1,105 @@
+import { Link } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { GenericDataTable } from '../shared/GenericDataTable'
+import { ContactForm } from '@/components/contacts/ContactForm'
 import useCrmStore from '@/stores/useCrmStore'
 import { Contact } from '@/types'
-import { Badge } from '@/components/ui/badge'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
 
 export default function ContactsList() {
   const { contacts, accounts } = useCrmStore()
+  const [open, setOpen] = useState(false)
 
   const columns = [
     {
       key: 'name',
       label: 'Contato',
       render: (_: any, c: Contact) => (
-        <div className="flex items-center gap-3">
+        <Link
+          to={`/contatos/${c.id}`}
+          className="flex items-center gap-3 hover:bg-muted/50 p-1 rounded-md transition-colors"
+        >
           <img
-            src={c.avatarUrl}
+            src={c.avatarUrl || 'https://img.usecurling.com/ppl/thumbnail'}
             alt={c.name}
             className="w-10 h-10 rounded-full bg-muted border object-cover"
           />
           <div>
-            <div className="font-medium">{c.name}</div>
+            <div className="font-medium text-primary hover:underline">{c.name}</div>
             <div className="text-xs text-muted-foreground">{c.email}</div>
           </div>
-        </div>
+        </Link>
       ),
     },
     {
       key: 'accountId',
       label: 'Conta',
-      render: (id: string) => accounts.find((a) => a.id === id)?.name || '-',
+      render: (id: string) => {
+        const acc = accounts.find((a) => a.id === id)
+        return acc ? (
+          <Link to={`/contas/${acc.id}`} className="hover:underline font-medium">
+            {acc.name}
+          </Link>
+        ) : (
+          '-'
+        )
+      },
     },
-    { key: 'position', label: 'Cargo' },
+    {
+      key: 'position',
+      label: 'Cargo / Fone',
+      render: (_: any, c: Contact) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-medium">{c.position || '-'}</span>
+          <span className="text-[11px] text-muted-foreground">{c.phone || c.mobile || 'N/A'}</span>
+        </div>
+      ),
+    },
     {
       key: 'influenceLevelGlobal',
-      label: 'Influência',
-      render: (val: string) => (
-        <Badge variant="secondary" className="capitalize">
-          {val || 'Desconhecida'}
-        </Badge>
+      label: 'Relacionamento',
+      render: (_: any, c: Contact) => (
+        <div className="flex flex-col gap-1 items-start">
+          <Badge variant="outline" className="text-[10px] capitalize py-0">
+            Inf: {c.influenceLevelGlobal || '?'}
+          </Badge>
+          <Badge
+            variant={c.relationshipStrength === 'forte' ? 'default' : 'secondary'}
+            className="text-[10px] capitalize py-0"
+          >
+            Rel: {c.relationshipStrength || '?'}
+          </Badge>
+        </div>
       ),
     },
   ]
+
+  const actions = (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" /> Novo Contato
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Novo Contato</DialogTitle>
+        </DialogHeader>
+        <div className="pt-2">
+          <ContactForm onSuccess={() => setOpen(false)} />
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 
   return (
     <GenericDataTable
@@ -48,6 +108,7 @@ export default function ContactsList() {
       data={contacts}
       columns={columns}
       searchKey="name"
+      actions={actions}
     />
   )
 }
