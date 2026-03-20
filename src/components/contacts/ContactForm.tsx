@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import useCrmStore from '@/stores/useCrmStore'
-import { Loader2 } from 'lucide-react'
+import { Camera, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 const OPTS = {
   influence: ['baixo', 'medio', 'alto'],
@@ -34,9 +35,13 @@ export function ContactForm({
     defaultValues: initialData || { accountId: defaultAccountId },
   })
   const [isLoadingCep, setIsLoadingCep] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData?.avatarUrl || null)
 
   useEffect(() => {
-    if (initialData) reset(initialData)
+    if (initialData) {
+      reset(initialData)
+      setAvatarPreview(initialData.avatarUrl || null)
+    }
   }, [initialData, reset])
 
   const handleCepBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
@@ -60,14 +65,29 @@ export function ContactForm({
     }
   }
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const onSubmit = (data: any) => {
     if (initialData?.id) {
-      updateContact(initialData.id, { ...data, updatedAt: new Date().toISOString() })
+      updateContact(initialData.id, {
+        ...data,
+        avatarUrl: avatarPreview || '',
+        updatedAt: new Date().toISOString(),
+      })
       toast({ title: 'Contato atualizado com sucesso!' })
     } else {
       addContact({
         ...data,
-        avatarUrl: `https://img.usecurling.com/ppl/thumbnail?seed=${Math.floor(Math.random() * 100)}`,
+        avatarUrl: avatarPreview || '',
         createdAt: new Date().toISOString(),
       })
       toast({ title: 'Contato criado com sucesso!' })
@@ -105,6 +125,26 @@ export function ContactForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
       <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2 flex items-center gap-4 mb-2">
+          <div className="relative">
+            <Avatar className="w-16 h-16 border cursor-pointer hover:opacity-80 transition-opacity">
+              <AvatarImage src={avatarPreview || undefined} className="object-cover" />
+              <AvatarFallback className="bg-muted text-muted-foreground">
+                <Camera className="w-6 h-6" />
+              </AvatarFallback>
+            </Avatar>
+            <Input
+              type="file"
+              accept="image/*"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={handlePhotoUpload}
+            />
+          </div>
+          <div className="text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Foto do Contato</p>
+            <p>Clique na imagem para fazer upload</p>
+          </div>
+        </div>
         <div className="col-span-2 space-y-1">
           <Label className="text-[11px]">Conta Vinculada *</Label>
           <select

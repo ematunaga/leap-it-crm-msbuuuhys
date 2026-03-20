@@ -55,16 +55,62 @@ interface CrmStore {
 
 const CrmContext = createContext<CrmStore | null>(null)
 
+const loadState = <T,>(key: string, defaultState: T): T => {
+  try {
+    const saved = localStorage.getItem(key)
+    if (saved) return JSON.parse(saved)
+  } catch (e) {
+    console.error('Error loading state from localStorage', e)
+  }
+  return defaultState
+}
+
 export function CrmProvider({ children }: { children: ReactNode }) {
-  const [accounts, setAccounts] = useState<Account[]>(mockAccounts)
-  const [contacts, setContacts] = useState<Contact[]>(mockContacts)
-  const [opps, setOpps] = useState<Opportunity[]>(mockOpps)
-  const [activities, setActivities] = useState<Activity[]>(mockActivities)
-  const [leads, setLeads] = useState<Lead[]>(mockLeads)
-  const [competitors, setCompetitors] = useState<Competitor[]>(mockCompetitors)
-  const [contracts, setContracts] = useState<Contract[]>(mockContracts)
-  const [profiles, setProfiles] = useState<AccessProfile[]>(mockProfiles)
-  const [users, setUsers] = useState<AppUser[]>(mockUsers)
+  const [accounts, setAccounts] = useState<Account[]>(() => loadState('crm_accounts', mockAccounts))
+  const [contacts, setContacts] = useState<Contact[]>(() => loadState('crm_contacts', mockContacts))
+  const [opps, setOpps] = useState<Opportunity[]>(() => loadState('crm_opps', mockOpps))
+  const [activities, setActivities] = useState<Activity[]>(() =>
+    loadState('crm_activities', mockActivities),
+  )
+  const [leads, setLeads] = useState<Lead[]>(() => loadState('crm_leads', mockLeads))
+  const [competitors, setCompetitors] = useState<Competitor[]>(() =>
+    loadState('crm_competitors', mockCompetitors),
+  )
+  const [contracts, setContracts] = useState<Contract[]>(() =>
+    loadState('crm_contracts', mockContracts),
+  )
+  const [profiles, setProfiles] = useState<AccessProfile[]>(() =>
+    loadState('crm_profiles', mockProfiles),
+  )
+  const [users, setUsers] = useState<AppUser[]>(() => loadState('crm_users', mockUsers))
+
+  useEffect(() => {
+    localStorage.setItem('crm_accounts', JSON.stringify(accounts))
+  }, [accounts])
+  useEffect(() => {
+    localStorage.setItem('crm_contacts', JSON.stringify(contacts))
+  }, [contacts])
+  useEffect(() => {
+    localStorage.setItem('crm_opps', JSON.stringify(opps))
+  }, [opps])
+  useEffect(() => {
+    localStorage.setItem('crm_activities', JSON.stringify(activities))
+  }, [activities])
+  useEffect(() => {
+    localStorage.setItem('crm_leads', JSON.stringify(leads))
+  }, [leads])
+  useEffect(() => {
+    localStorage.setItem('crm_competitors', JSON.stringify(competitors))
+  }, [competitors])
+  useEffect(() => {
+    localStorage.setItem('crm_contracts', JSON.stringify(contracts))
+  }, [contracts])
+  useEffect(() => {
+    localStorage.setItem('crm_profiles', JSON.stringify(profiles))
+  }, [profiles])
+  useEffect(() => {
+    localStorage.setItem('crm_users', JSON.stringify(users))
+  }, [users])
 
   useEffect(() => {
     const today = new Date()
@@ -243,14 +289,12 @@ export function CrmProvider({ children }: { children: ReactNode }) {
 
   const syncWithPricingApp = async () => {
     return new Promise<void>((resolve) => {
-      // Integração com a API externa utilizando a chave fornecida na especificação
       const SYNC_API_KEY = 'leap_pzpaeiowz9kom1u4jah7nk'
 
       console.log(
         `[Sync] Iniciando sincronização com API externa utilizando token Bearer: ${SYNC_API_KEY}`,
       )
 
-      // Simulação de chamada real usando o token no cabeçalho
       fetch('https://api.leap-pricing.com/v1/sync/users', {
         method: 'GET',
         headers: {
@@ -259,7 +303,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         },
       })
         .catch(() => {
-          // Mock fallback ignorando erros para demonstração
           console.log(
             '[Sync] Falha na chamada da API externa. Utilizando dados de fallback para sincronização.',
           )

@@ -9,6 +9,7 @@ import { Contact } from '@/types'
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export default function ContactsList() {
   const { contacts, accounts, deleteContact } = useCrmStore()
@@ -24,11 +25,12 @@ export default function ContactsList() {
           to={`/contatos/${c.id}`}
           className="flex items-center gap-3 hover:bg-muted/50 p-1 rounded-md transition-colors"
         >
-          <img
-            src={c.avatarUrl || 'https://img.usecurling.com/ppl/thumbnail'}
-            alt={c.name}
-            className="w-10 h-10 rounded-full bg-muted border object-cover"
-          />
+          <Avatar className="w-10 h-10 border">
+            <AvatarImage src={c.avatarUrl} className="object-cover" />
+            <AvatarFallback className="bg-muted text-muted-foreground text-xs font-semibold">
+              {c.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           <div>
             <div className="font-medium text-primary hover:underline">{c.name}</div>
             <div className="text-xs text-muted-foreground">{c.email}</div>
