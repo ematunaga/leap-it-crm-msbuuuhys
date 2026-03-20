@@ -22,6 +22,7 @@ import { CrmProvider } from './stores/useCrmStore'
 import { AuthProvider } from './hooks/use-auth'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/auth/Login'
+import UpdatePassword from './pages/auth/UpdatePassword'
 
 const App = () => (
   <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
@@ -32,6 +33,7 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
                 <Route path="/" element={<Index />} />
