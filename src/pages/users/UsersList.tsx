@@ -1,7 +1,19 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { GenericDataTable } from '../shared/GenericDataTable'
+import { UserForm } from '@/components/users/UserForm'
 import useCrmStore from '@/stores/useCrmStore'
 import { AppUser } from '@/types'
 import {
@@ -11,6 +23,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  Plus,
+  Edit,
+  Trash2,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/utils'
@@ -18,9 +33,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export default function UsersList() {
-  const { users, syncWithPricingApp } = useCrmStore()
+  const { users, syncWithPricingApp, deleteUser } = useCrmStore()
   const { toast } = useToast()
+
   const [isSyncing, setIsSyncing] = useState(false)
+  const [openForm, setOpenForm] = useState(false)
+  const [editUser, setEditUser] = useState<AppUser | null>(null)
+
+  const [openDelete, setOpenDelete] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<string | null>(null)
 
   const handleSync = async () => {
     setIsSyncing(true)
@@ -39,6 +60,18 @@ export default function UsersList() {
     } finally {
       setIsSyncing(false)
     }
+  }
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      deleteUser(userToDelete)
+      toast({
+        title: 'Usuário Removido',
+        description:
+          'O usuário foi excluído do CRM e a alteração será propagada para a Precificação.',
+      })
+    }
+    setOpenDelete(false)
   }
 
   const columns = [
@@ -138,6 +171,34 @@ export default function UsersList() {
         )
       },
     },
+    {
+      key: 'actions',
+      label: '',
+      render: (_: any, user: AppUser) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setEditUser(user)
+              setOpenForm(true)
+            }}
+          >
+            <Edit className="w-4 h-4 text-muted-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setUserToDelete(user.id)
+              setOpenDelete(true)
+            }}
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
+      ),
+    },
   ]
 
   const actions = (
@@ -153,21 +214,61 @@ export default function UsersList() {
         ) : (
           <LinkIcon className="w-4 h-4 mr-2" />
         )}
-        Sincronizar com Precificação
+        Sincronizar Forçado
+      </Button>
+      <Button
+        onClick={() => {
+          setEditUser(null)
+          setOpenForm(true)
+        }}
+      >
+        <Plus className="w-4 h-4 mr-2" /> Novo Usuário
       </Button>
     </div>
   )
 
   return (
-    <div className="bg-card rounded-xl">
-      <GenericDataTable
-        title="Usuários e Integração"
-        subtitle="Gestão de acesso centralizada com o aplicativo LEAP IT Precificação."
-        data={users}
-        columns={columns}
-        searchKey="name"
-        actions={actions}
-      />
-    </div>
+    <>
+      <div className="bg-card rounded-xl">
+        <GenericDataTable
+          title="Usuários e Integração"
+          subtitle="Gestão de acesso centralizada com o aplicativo LEAP IT Precificação."
+          data={users}
+          columns={columns}
+          searchKey="name"
+          actions={actions}
+        />
+      </div>
+
+      <Dialog open={openForm} onOpenChange={setOpenForm}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editUser ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle>
+          </DialogHeader>
+          <UserForm initialData={editUser} onSuccess={() => setOpenForm(false)} />
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação removerá o acesso deste usuário permanentemente no CRM e as mudanças
+              refletirão no aplicativo de Precificação.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setOpenDelete(false)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              Remover Usuário
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

@@ -43,6 +43,9 @@ interface CrmStore {
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
   addProfile: (profile: Omit<AccessProfile, 'id'>) => void
   updateProfile: (id: string, updates: Partial<AccessProfile>) => void
+  addUser: (user: Omit<AppUser, 'id'>) => void
+  updateUser: (id: string, updates: Partial<AppUser>) => void
+  deleteUser: (id: string) => void
   syncWithPricingApp: () => Promise<void>
 }
 
@@ -152,6 +155,26 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     setProfiles((prev) => [newProfile, ...prev])
   }
 
+  const addUser = (user: Omit<AppUser, 'id'>) => {
+    const newUser = {
+      ...user,
+      id: Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString(),
+      syncStatus: 'pending',
+    } as AppUser
+    setUsers((prev) => [newUser, ...prev])
+  }
+
+  const updateUser = (id: string, updates: Partial<AppUser>) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, ...updates, syncStatus: 'pending' } : u)),
+    )
+  }
+
+  const deleteUser = (id: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== id))
+  }
+
   const addActivity = (act: Omit<Activity, 'id'>) => {
     const newAct = {
       ...act,
@@ -199,7 +222,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const syncWithPricingApp = async () => {
-    // Simula a integração entre LEAP IT CRM e LEAP IT Precificação
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         setUsers((prev) =>
@@ -236,6 +258,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       addOpportunity,
       addProfile,
       updateProfile,
+      addUser,
+      updateUser,
+      deleteUser,
       syncWithPricingApp,
     }),
     [accounts, contacts, opps, activities, leads, competitors, contracts, profiles, users],
