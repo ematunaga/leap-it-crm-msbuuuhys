@@ -161,6 +161,34 @@ export interface Opportunity {
   notes?: string
 }
 
+export interface OpportunityStakeholder {
+  id: string
+  opportunityId: string
+  accountId: string
+  contactId: string
+  contactName?: string
+  role:
+    | 'champion'
+    | 'economic_buyer'
+    | 'technical_buyer'
+    | 'user_buyer'
+    | 'decision_maker'
+    | 'influencer'
+    | 'blocker'
+    | 'sponsor'
+    | string
+  influenceLevel: 'baixo' | 'medio' | 'alto' | string
+  seniorityLevel: 'junior' | 'pleno' | 'senior' | 'diretor' | 'c_level' | string
+  stance: 'favoravel' | 'neutro' | 'contrario' | string
+  accessLevel: 'limitado' | 'moderado' | 'total' | string
+  isChampion: boolean
+  isEconomicBuyer: boolean
+  isDecisionMaker: boolean
+  createdAt?: string
+  updatedAt?: string
+  notes?: string
+}
+
 export interface Activity {
   id: string
   ownerId?: string

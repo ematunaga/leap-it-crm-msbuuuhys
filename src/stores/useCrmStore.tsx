@@ -8,6 +8,7 @@ import {
   Contract,
   Lead,
   Opportunity,
+  OpportunityStakeholder,
   AccessProfile,
   AppUser,
 } from '@/types'
@@ -16,6 +17,7 @@ import {
   mockActivities,
   mockContacts,
   mockOpps,
+  mockStakeholders,
   mockLeads,
   mockCompetitors,
   mockContracts,
@@ -27,6 +29,7 @@ interface CrmStore {
   accounts: Account[]
   contacts: Contact[]
   opps: Opportunity[]
+  stakeholders: OpportunityStakeholder[]
   activities: Activity[]
   leads: Lead[]
   competitors: Competitor[]
@@ -46,6 +49,9 @@ interface CrmStore {
   addOpportunity: (opp: Omit<Opportunity, 'id'>) => void
   updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
   deleteOpportunity: (id: string) => void
+  addStakeholder: (sh: Omit<OpportunityStakeholder, 'id'>) => void
+  updateStakeholder: (id: string, updates: Partial<OpportunityStakeholder>) => void
+  deleteStakeholder: (id: string) => void
   addProfile: (profile: Omit<AccessProfile, 'id'>) => void
   updateProfile: (id: string, updates: Partial<AccessProfile>) => void
   addUser: (user: Omit<AppUser, 'id'>) => void
@@ -70,6 +76,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>(() => loadState('crm_accounts', mockAccounts))
   const [contacts, setContacts] = useState<Contact[]>(() => loadState('crm_contacts', mockContacts))
   const [opps, setOpps] = useState<Opportunity[]>(() => loadState('crm_opps', mockOpps))
+  const [stakeholders, setStakeholders] = useState<OpportunityStakeholder[]>(() =>
+    loadState('crm_stakeholders', mockStakeholders),
+  )
   const [activities, setActivities] = useState<Activity[]>(() =>
     loadState('crm_activities', mockActivities),
   )
@@ -94,6 +103,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('crm_opps', JSON.stringify(opps))
   }, [opps])
+  useEffect(() => {
+    localStorage.setItem('crm_stakeholders', JSON.stringify(stakeholders))
+  }, [stakeholders])
   useEffect(() => {
     localStorage.setItem('crm_activities', JSON.stringify(activities))
   }, [activities])
@@ -211,6 +223,27 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       daysInStage: 0,
     } as Opportunity
     setOpps((prev) => [newOpp, ...prev])
+  }
+
+  const addStakeholder = (sh: Omit<OpportunityStakeholder, 'id'>) => {
+    const newSh = {
+      ...sh,
+      id: Math.random().toString(36).substring(2, 9),
+      createdAt: new Date().toISOString(),
+    } as OpportunityStakeholder
+    setStakeholders((prev) => [newSh, ...prev])
+  }
+
+  const updateStakeholder = (id: string, updates: Partial<OpportunityStakeholder>) => {
+    setStakeholders((prev) =>
+      prev.map((sh) =>
+        sh.id === id ? { ...sh, ...updates, updatedAt: new Date().toISOString() } : sh,
+      ),
+    )
+  }
+
+  const deleteStakeholder = (id: string) => {
+    setStakeholders((prev) => prev.filter((sh) => sh.id !== id))
   }
 
   const addProfile = (profile: Omit<AccessProfile, 'id'>) => {
@@ -391,6 +424,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       accounts,
       contacts,
       opps,
+      stakeholders,
       activities,
       leads,
       competitors,
@@ -410,6 +444,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       updateContact,
       deleteContact,
       addOpportunity,
+      addStakeholder,
+      updateStakeholder,
+      deleteStakeholder,
       addProfile,
       updateProfile,
       addUser,
@@ -417,7 +454,18 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       deleteUser,
       syncWithPricingApp,
     }),
-    [accounts, contacts, opps, activities, leads, competitors, contracts, profiles, users],
+    [
+      accounts,
+      contacts,
+      opps,
+      stakeholders,
+      activities,
+      leads,
+      competitors,
+      contracts,
+      profiles,
+      users,
+    ],
   )
 
   return <CrmContext.Provider value={value}>{children}</CrmContext.Provider>

@@ -21,15 +21,26 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import useCrmStore from '@/stores/useCrmStore'
-import { formatDate, formatMoney } from '@/lib/utils'
+import { cn, formatDate, formatMoney } from '@/lib/utils'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
+import { StakeholderForm } from '@/components/opportunities/StakeholderForm'
 import NotFound from '../NotFound'
-import { Edit } from 'lucide-react'
+import { Edit, Plus, Trash2 } from 'lucide-react'
 
 export default function OpportunityDetail() {
   const { id } = useParams()
-  const { opps, accounts, activities, contacts, updateOpportunity } = useCrmStore()
+  const {
+    opps,
+    accounts,
+    activities,
+    contacts,
+    stakeholders,
+    updateOpportunity,
+    deleteStakeholder,
+  } = useCrmStore()
   const [openEdit, setOpenEdit] = useState(false)
+  const [openStakeholder, setOpenStakeholder] = useState(false)
+  const [editingStakeholder, setEditingStakeholder] = useState<any>(undefined)
 
   const opp = opps.find((o) => o.id === id)
   if (!opp) return <NotFound />
@@ -39,55 +50,7 @@ export default function OpportunityDetail() {
     (a) => a.relatedTo === 'Opportunity' && a.relatedId === id,
   )
   const accountContacts = contacts.filter((c) => c.accountId === opp.accountId)
-
-  const CommitteeSelect = ({
-    label,
-    statusField,
-    contactField,
-  }: {
-    label: string
-    statusField: keyof typeof opp
-    contactField: keyof typeof opp
-  }) => (
-    <div className="space-y-3 bg-muted/20 p-4 rounded-lg border">
-      <Label className="text-sm font-semibold">{label}</Label>
-      <Select
-        value={(opp[statusField] as string) || 'nao_identificado'}
-        onValueChange={(val) => updateOpportunity(opp.id, { [statusField]: val })}
-      >
-        <SelectTrigger className="bg-background">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="nao_identificado">Não Identificado</SelectItem>
-          <SelectItem value="identificado">Identificado</SelectItem>
-          <SelectItem value="confirmado">Confirmado</SelectItem>
-        </SelectContent>
-      </Select>
-      {['identificado', 'confirmado'].includes(opp[statusField] as string) && (
-        <div className="space-y-1 mt-2">
-          <Label className="text-[11px] uppercase text-muted-foreground font-semibold">
-            Contato Selecionado
-          </Label>
-          <Select
-            value={(opp[contactField] as string) || ''}
-            onValueChange={(val) => updateOpportunity(opp.id, { [contactField]: val })}
-          >
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Selecione..." />
-            </SelectTrigger>
-            <SelectContent>
-              {accountContacts.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-    </div>
-  )
+  const oppStakeholders = stakeholders?.filter((s) => s.opportunityId === opp.id) || []
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -338,27 +301,106 @@ export default function OpportunityDetail() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="committee" className="mt-4">
+        <TabsContent value="committee" className="mt-4 space-y-4">
           <Card className="shadow-subtle">
-            <CardHeader>
-              <CardTitle>Análise do Comitê de Compra</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle>Comitê de Compra (Stakeholders)</CardTitle>
+              <Dialog open={openStakeholder} onOpenChange={setOpenStakeholder}>
+                <DialogTrigger asChild>
+                  <Button size="sm" onClick={() => setEditingStakeholder(undefined)}>
+                    <Plus className="w-4 h-4 mr-2" /> Adicionar Stakeholder
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingStakeholder ? 'Editar' : 'Adicionar'} Stakeholder
+                    </DialogTitle>
+                  </DialogHeader>
+                  <StakeholderForm
+                    opportunityId={opp.id}
+                    accountId={opp.accountId}
+                    contacts={accountContacts}
+                    initialData={editingStakeholder}
+                    onSuccess={() => setOpenStakeholder(false)}
+                  />
+                </DialogContent>
+              </Dialog>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-3 gap-6">
-              <CommitteeSelect
-                label="Champion (Campeão)"
-                statusField="championStatus"
-                contactField="championContactId"
-              />
-              <CommitteeSelect
-                label="Economic Buyer (Comprador Econômico)"
-                statusField="economicBuyerStatus"
-                contactField="economicBuyerContactId"
-              />
-              <CommitteeSelect
-                label="Decision Maker (Tomador de Decisão)"
-                statusField="decisionMakerStatus"
-                contactField="decisionMakerContactId"
-              />
+            <CardContent>
+              {oppStakeholders.length === 0 ? (
+                <p className="text-muted-foreground text-center py-6 text-sm">
+                  Nenhum stakeholder mapeado ainda.
+                </p>
+              ) : (
+                <div className="overflow-x-auto border rounded-md">
+                  <table className="w-full text-sm text-left">
+                    <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold">Contato</th>
+                        <th className="px-4 py-3 font-semibold">Papel</th>
+                        <th className="px-4 py-3 font-semibold">Influência</th>
+                        <th className="px-4 py-3 font-semibold">Postura</th>
+                        <th className="px-4 py-3 font-semibold">Tags</th>
+                        <th className="px-4 py-3 font-semibold text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {oppStakeholders.map((sh) => (
+                        <tr key={sh.id} className="border-t last:border-0 hover:bg-muted/20">
+                          <td className="px-4 py-3 font-medium">{sh.contactName}</td>
+                          <td className="px-4 py-3 capitalize">{sh.role?.replace('_', ' ')}</td>
+                          <td className="px-4 py-3 capitalize">{sh.influenceLevel}</td>
+                          <td className="px-4 py-3 capitalize">
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                sh.stance === 'favoravel' && 'border-green-500 text-green-600',
+                                sh.stance === 'contrario' && 'border-red-500 text-red-600',
+                              )}
+                            >
+                              {sh.stance}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-1 flex-wrap">
+                              {sh.isChampion && (
+                                <Badge className="bg-amber-500 text-[10px]">Champion</Badge>
+                              )}
+                              {sh.isEconomicBuyer && (
+                                <Badge className="bg-blue-500 text-[10px]">Eco. Buyer</Badge>
+                              )}
+                              {sh.isDecisionMaker && (
+                                <Badge className="bg-purple-500 text-[10px]">Dec. Maker</Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingStakeholder(sh)
+                                setOpenStakeholder(true)
+                              }}
+                            >
+                              <Edit className="w-4 h-4 text-muted-foreground" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => deleteStakeholder(sh.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
