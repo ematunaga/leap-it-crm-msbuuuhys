@@ -24,6 +24,44 @@ const OPTS = {
   forecastCategory: ['pipeline', 'best_case', 'commit', 'closed'],
 }
 
+const FieldInput = ({ l, n, r, t = 'text', step, readOnly, className, register, errors }: any) => (
+  <div className="space-y-1">
+    <Label className="text-[11px]">
+      {l}
+      {r && ' *'}
+    </Label>
+    <Input
+      type={t}
+      step={step}
+      readOnly={readOnly}
+      className={cn('h-8 text-xs', className)}
+      {...register(n, { required: r })}
+    />
+    {errors[n] && <span className="text-[10px] text-destructive">Obrigatório</span>}
+  </div>
+)
+
+const FieldSelect = ({ l, n, opts, r, register, errors }: any) => (
+  <div className="space-y-1">
+    <Label className="text-[11px]">
+      {l}
+      {r && ' *'}
+    </Label>
+    <select
+      className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+      {...register(n, { required: r })}
+    >
+      <option value="">Selecione...</option>
+      {opts.map((o: any) => (
+        <option key={o} value={o}>
+          {o.replace(/_/g, ' ').toUpperCase()}
+        </option>
+      ))}
+    </select>
+    {errors[n] && <span className="text-[10px] text-destructive">Obrigatório</span>}
+  </div>
+)
+
 export function OpportunityForm({
   onSuccess,
   defaultAccountId = '',
@@ -107,44 +145,6 @@ export function OpportunityForm({
     onSuccess()
   }
 
-  const F = ({ l, n, r, t = 'text', step, readOnly, className }: any) => (
-    <div className="space-y-1">
-      <Label className="text-[11px]">
-        {l}
-        {r && ' *'}
-      </Label>
-      <Input
-        type={t}
-        step={step}
-        readOnly={readOnly}
-        className={cn('h-8 text-xs', className)}
-        {...register(n, { required: r })}
-      />
-      {errors[n] && <span className="text-[10px] text-destructive">Obrigatório</span>}
-    </div>
-  )
-
-  const S = ({ l, n, opts, r }: any) => (
-    <div className="space-y-1">
-      <Label className="text-[11px]">
-        {l}
-        {r && ' *'}
-      </Label>
-      <select
-        className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
-        {...register(n, { required: r })}
-      >
-        <option value="">Selecione...</option>
-        {opts.map((o: any) => (
-          <option key={o} value={o}>
-            {o.replace(/_/g, ' ').toUpperCase()}
-          </option>
-        ))}
-      </select>
-      {errors[n] && <span className="text-[10px] text-destructive">Obrigatório</span>}
-    </div>
-  )
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
       <Tabs defaultValue="geral" className="w-full">
@@ -178,67 +178,259 @@ export function OpportunityForm({
               ))}
             </select>
           </div>
-          <F l="Título da Oportunidade" n="title" r />
+          <FieldInput l="Título da Oportunidade" n="title" r register={register} errors={errors} />
           <div className="grid grid-cols-2 gap-3">
-            <F l="Valor" n="value" t="number" step="0.01" r />
-            <S l="Moeda" n="currency" opts={OPTS.currency} r />
-            <S l="Tipo de Venda" n="saleType" opts={OPTS.saleType} />
-            <S l="Modalidade" n="modality" opts={OPTS.modality} />
-            <S l="Parceiro" n="partner" opts={OPTS.partner} />
-            <S l="Fase" n="stage" opts={OPTS.stage} r />
-            <S l="Temperatura" n="temperature" opts={OPTS.temperature} />
-            <F l="Fechamento Previsto" n="expectedCloseDate" t="date" />
+            <FieldInput
+              l="Valor"
+              n="value"
+              t="number"
+              step="0.01"
+              r
+              register={register}
+              errors={errors}
+            />
+            <FieldSelect
+              l="Moeda"
+              n="currency"
+              opts={OPTS.currency}
+              r
+              register={register}
+              errors={errors}
+            />
+            <FieldSelect
+              l="Tipo de Venda"
+              n="saleType"
+              opts={OPTS.saleType}
+              register={register}
+              errors={errors}
+            />
+            <FieldSelect
+              l="Modalidade"
+              n="modality"
+              opts={OPTS.modality}
+              register={register}
+              errors={errors}
+            />
+            <FieldSelect
+              l="Parceiro"
+              n="partner"
+              opts={OPTS.partner}
+              register={register}
+              errors={errors}
+            />
+            <FieldSelect
+              l="Fase"
+              n="stage"
+              opts={OPTS.stage}
+              r
+              register={register}
+              errors={errors}
+            />
+            <FieldSelect
+              l="Temperatura"
+              n="temperature"
+              opts={OPTS.temperature}
+              register={register}
+              errors={errors}
+            />
+            <FieldInput
+              l="Fechamento Previsto"
+              n="expectedCloseDate"
+              t="date"
+              register={register}
+              errors={errors}
+            />
             <div className="col-span-2">
-              <F l="Próximo Passo" n="nextStep" />
+              <FieldInput l="Próximo Passo" n="nextStep" register={register} errors={errors} />
             </div>
-            <F l="Data Próx. Passo" n="nextStepDate" t="date" />
+            <FieldInput
+              l="Data Próx. Passo"
+              n="nextStepDate"
+              t="date"
+              register={register}
+              errors={errors}
+            />
           </div>
         </TabsContent>
 
         <TabsContent value="dinamica" className="grid grid-cols-2 gap-3 pt-2">
-          <F l="Probabilidade (%)" n="winProbability" t="number" step="1" />
-          <S l="Nível de Risco" n="riskLevel" opts={OPTS.riskLevel} />
-          <F
+          <FieldInput
+            l="Probabilidade (%)"
+            n="winProbability"
+            t="number"
+            step="1"
+            register={register}
+            errors={errors}
+          />
+          <FieldSelect
+            l="Nível de Risco"
+            n="riskLevel"
+            opts={OPTS.riskLevel}
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
             l="Dias no Estágio (Auto)"
             n="daysInStage"
             t="number"
             readOnly
             className="bg-muted text-muted-foreground"
+            register={register}
+            errors={errors}
           />
-          <S l="Status Follow-up" n="statusFollowUp" opts={OPTS.statusFollowUp} />
-          <F l="Resumo Última Interação" n="lastInteractionSummary" />
-          <F l="Data Última Interação" n="lastInteractionAt" t="date" />
+          <FieldSelect
+            l="Status Follow-up"
+            n="statusFollowUp"
+            opts={OPTS.statusFollowUp}
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="Resumo Última Interação"
+            n="lastInteractionSummary"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="Data Última Interação"
+            n="lastInteractionAt"
+            t="date"
+            register={register}
+            errors={errors}
+          />
           <div className="col-span-2 mt-2 font-semibold text-xs border-b pb-1 text-muted-foreground">
             Inteligência Competitiva
           </div>
-          <F l="Concorrente Principal" n="mainCompetitorName" />
-          <S l="Posição Competitiva" n="competitivePosition" opts={OPTS.competitivePosition} />
+          <FieldInput
+            l="Concorrente Principal"
+            n="mainCompetitorName"
+            register={register}
+            errors={errors}
+          />
+          <FieldSelect
+            l="Posição Competitiva"
+            n="competitivePosition"
+            opts={OPTS.competitivePosition}
+            register={register}
+            errors={errors}
+          />
         </TabsContent>
 
         <TabsContent value="financeiro" className="grid grid-cols-2 gap-3 pt-2">
-          <F l="Budget do Cliente" n="clientBudget" t="number" step="0.01" />
-          <F l="Margem sobre Budget (%)" n="budgetMargin" t="number" step="0.01" />
-          <F l="Custo Total" n="totalCost" t="number" step="0.01" />
-          <F l="Fator LeapIT" n="fatorLeapit" t="number" step="0.01" />
-          <S l="Tipo de Produto" n="productType" opts={OPTS.productType} />
-          <S l="Distribuidor" n="distributor" opts={OPTS.distributor} />
+          <FieldInput
+            l="Budget do Cliente"
+            n="clientBudget"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="Margem sobre Budget (%)"
+            n="budgetMargin"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="Custo Total"
+            n="totalCost"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="Fator LeapIT"
+            n="fatorLeapit"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldSelect
+            l="Tipo de Produto"
+            n="productType"
+            opts={OPTS.productType}
+            register={register}
+            errors={errors}
+          />
+          <FieldSelect
+            l="Distribuidor"
+            n="distributor"
+            opts={OPTS.distributor}
+            register={register}
+            errors={errors}
+          />
           <div className="col-span-2 mt-2 font-semibold text-xs border-b pb-1 text-muted-foreground">
             Impostos & Comissões
           </div>
-          <F l="ICMS Hardware (%)" n="icmsHardwarePercent" t="number" step="0.01" />
-          <F l="IPI (%)" n="ipiPercent" t="number" step="0.01" />
-          <F l="ISS Hardware (%)" n="issHardwarePercent" t="number" step="0.01" />
-          <F l="ICMS Software (%)" n="icmsSoftwarePercent" t="number" step="0.01" />
-          <F l="PIS/COFINS (%)" n="pisCofinsPercent" t="number" step="0.01" />
-          <F l="ISS Software (%)" n="issSoftwarePercent" t="number" step="0.01" />
-          <F l="Comissão Vendedor (%)" n="sellerCommissionPercent" t="number" step="0.01" />
-          <F
+          <FieldInput
+            l="ICMS Hardware (%)"
+            n="icmsHardwarePercent"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="IPI (%)"
+            n="ipiPercent"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="ISS Hardware (%)"
+            n="issHardwarePercent"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="ICMS Software (%)"
+            n="icmsSoftwarePercent"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="PIS/COFINS (%)"
+            n="pisCofinsPercent"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="ISS Software (%)"
+            n="issSoftwarePercent"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
+            l="Comissão Vendedor (%)"
+            n="sellerCommissionPercent"
+            t="number"
+            step="0.01"
+            register={register}
+            errors={errors}
+          />
+          <FieldInput
             l="Margem Líquida (%) Auto"
             n="netMarginPercent"
             t="number"
             step="0.01"
             readOnly
             className="bg-muted text-muted-foreground"
+            register={register}
+            errors={errors}
           />
         </TabsContent>
 
@@ -249,12 +441,23 @@ export function OpportunityForm({
               Possui Deal Registration?
             </Label>
           </div>
-          <S l="Forecast Category" n="forecastCategory" opts={OPTS.forecastCategory} />
+          <FieldSelect
+            l="Forecast Category"
+            n="forecastCategory"
+            opts={OPTS.forecastCategory}
+            register={register}
+            errors={errors}
+          />
           <div className="col-span-2">
-            <F l="Motivo da Perda" n="lossReason" />
+            <FieldInput l="Motivo da Perda" n="lossReason" register={register} errors={errors} />
           </div>
           <div className="col-span-2">
-            <F l="Detalhe da Perda" n="lossReasonDetail" />
+            <FieldInput
+              l="Detalhe da Perda"
+              n="lossReasonDetail"
+              register={register}
+              errors={errors}
+            />
           </div>
           <div className="col-span-2">
             <Label className="text-[11px]">Notas de Auditoria / Gerais</Label>

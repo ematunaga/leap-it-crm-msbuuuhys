@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import useCrmStore from '@/stores/useCrmStore'
-import { cn, formatDate, formatMoney } from '@/lib/utils'
+import { cn, formatDate, formatMoney, convertCurrency } from '@/lib/utils'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
 import { StakeholderForm } from '@/components/opportunities/StakeholderForm'
 import NotFound from '../NotFound'
@@ -37,6 +37,10 @@ export default function OpportunityDetail() {
     stakeholders,
     updateOpportunity,
     deleteStakeholder,
+    currencyView,
+    setCurrencyView,
+    ptaxRate,
+    ptaxDate,
   } = useCrmStore()
   const [openEdit, setOpenEdit] = useState(false)
   const [openStakeholder, setOpenStakeholder] = useState(false)
@@ -65,11 +69,9 @@ export default function OpportunityDetail() {
               {account?.name}
             </Link>
           </p>
-        </div>
-        <div className="text-right flex flex-col items-end gap-3">
           <Dialog open={openEdit} onOpenChange={setOpenEdit}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="mt-3">
                 <Edit className="w-4 h-4 mr-2" /> Editar Oportunidade
               </Button>
             </DialogTrigger>
@@ -82,26 +84,56 @@ export default function OpportunityDetail() {
               </div>
             </DialogContent>
           </Dialog>
-          <div>
-            <div className="text-3xl font-bold font-mono text-primary">
-              {formatMoney(opp.value)}
+        </div>
+        <div className="text-right flex flex-col items-end">
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border mb-2">
+            <Button
+              variant={currencyView === 'BRL' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-6 text-[10px] px-2"
+              onClick={() => setCurrencyView('BRL')}
+            >
+              BRL
+            </Button>
+            <Button
+              variant={currencyView === 'USD' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-6 text-[10px] px-2"
+              onClick={() => setCurrencyView('USD')}
+            >
+              USD
+            </Button>
+          </div>
+          <div className="text-3xl font-bold font-mono text-primary">
+            {formatMoney(
+              convertCurrency(opp.value, opp.currency || 'BRL', currencyView, ptaxRate),
+              currencyView,
+            )}
+          </div>
+          {opp.currency && opp.currency !== currencyView && (
+            <div className="text-xs text-muted-foreground font-mono mt-1">
+              Original: {formatMoney(opp.value, opp.currency)}
             </div>
-            <div className="flex justify-end gap-2 mt-2">
-              <Badge variant="outline" className="capitalize">
-                {opp.stage.replace('_', ' ')}
-              </Badge>
-              <Badge
-                className={
-                  opp.temperature === 'quente'
-                    ? 'bg-rose-500 hover:bg-rose-600'
-                    : opp.temperature === 'morna'
-                      ? 'bg-amber-500 hover:bg-amber-600'
-                      : 'bg-blue-500 hover:bg-blue-600'
-                }
-              >
-                {opp.temperature}
-              </Badge>
-            </div>
+          )}
+          <div className="flex justify-end gap-2 mt-2">
+            <Badge variant="outline" className="capitalize">
+              {opp.stage.replace('_', ' ')}
+            </Badge>
+            <Badge
+              className={
+                opp.temperature === 'quente'
+                  ? 'bg-rose-500 hover:bg-rose-600'
+                  : opp.temperature === 'morna'
+                    ? 'bg-amber-500 hover:bg-amber-600'
+                    : 'bg-blue-500 hover:bg-blue-600'
+              }
+            >
+              {opp.temperature}
+            </Badge>
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-2 text-right">
+            PTAX: R$ {ptaxRate.toFixed(4)} <br />
+            (Ref: {ptaxDate ? formatDate(ptaxDate) : '-'})
           </div>
         </div>
       </div>

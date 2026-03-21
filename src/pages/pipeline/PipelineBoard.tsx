@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
-import { convertCurrency } from '@/lib/utils'
+import { convertCurrency, formatDate } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 
 const STAGES: string[] = [
@@ -33,7 +33,7 @@ const stageLabels: Record<string, string> = {
 }
 
 export default function PipelineBoard() {
-  const { opps, updateOppStage, currencyView, setCurrencyView } = useCrmStore()
+  const { opps, updateOppStage, currencyView, setCurrencyView, ptaxRate, ptaxDate } = useCrmStore()
   const [openOpp, setOpenOpp] = useState(false)
 
   return (
@@ -46,40 +46,45 @@ export default function PipelineBoard() {
             Vermelha).
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border">
-            <Button
-              variant={currencyView === 'BRL' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-8 text-xs px-3"
-              onClick={() => setCurrencyView('BRL')}
-            >
-              BRL
-            </Button>
-            <Button
-              variant={currencyView === 'USD' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-8 text-xs px-3"
-              onClick={() => setCurrencyView('USD')}
-            >
-              USD
-            </Button>
-          </div>
-          <Dialog open={openOpp} onOpenChange={setOpenOpp}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border">
+              <Button
+                variant={currencyView === 'BRL' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-8 text-xs px-3"
+                onClick={() => setCurrencyView('BRL')}
+              >
+                BRL
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px]">
-              <DialogHeader>
-                <DialogTitle>Nova Oportunidade</DialogTitle>
-              </DialogHeader>
-              <div className="pt-2">
-                <OpportunityForm onSuccess={() => setOpenOpp(false)} />
-              </div>
-            </DialogContent>
-          </Dialog>
+              <Button
+                variant={currencyView === 'USD' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-8 text-xs px-3"
+                onClick={() => setCurrencyView('USD')}
+              >
+                USD
+              </Button>
+            </div>
+            <Dialog open={openOpp} onOpenChange={setOpenOpp}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[700px]">
+                <DialogHeader>
+                  <DialogTitle>Nova Oportunidade</DialogTitle>
+                </DialogHeader>
+                <div className="pt-2">
+                  <OpportunityForm onSuccess={() => setOpenOpp(false)} />
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+          <div className="text-[10px] text-muted-foreground mt-1 mr-1">
+            Cotação PTAX: R$ {ptaxRate.toFixed(4)} (Data: {ptaxDate ? formatDate(ptaxDate) : '-'})
+          </div>
         </div>
       </div>
 

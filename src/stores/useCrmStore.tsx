@@ -37,6 +37,7 @@ interface CrmStore {
   profiles: AccessProfile[]
   users: AppUser[]
   ptaxRate: number
+  ptaxDate: string
   currencyView: 'BRL' | 'USD'
   setCurrencyView: (view: 'BRL' | 'USD') => void
   updateOppStage: (id: string, stage: string) => void
@@ -98,6 +99,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>(() => loadState('crm_users', mockUsers))
 
   const [ptaxRate, setPtaxRate] = useState<number>(() => loadState('crm_ptax', 5.0))
+  const [ptaxDate, setPtaxDate] = useState<string>(() => loadState('crm_ptax_date', ''))
   const [currencyView, setCurrencyView] = useState<'BRL' | 'USD'>(() =>
     loadState('crm_currency_view', 'BRL'),
   )
@@ -136,6 +138,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('crm_ptax', JSON.stringify(ptaxRate))
   }, [ptaxRate])
   useEffect(() => {
+    localStorage.setItem('crm_ptax_date', JSON.stringify(ptaxDate))
+  }, [ptaxDate])
+  useEffect(() => {
     localStorage.setItem('crm_currency_view', JSON.stringify(currencyView))
   }, [currencyView])
 
@@ -149,12 +154,13 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         const fDate = (d: Date) =>
           `${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}-${d.getFullYear()}`
 
-        const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='${fDate(lastWeek)}'&@dataFinalCotacao='${fDate(today)}'&$top=1&$orderby=dataHoraCotacao%20desc&$format=json&$select=cotacaoCompra`
+        const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='${fDate(lastWeek)}'&@dataFinalCotacao='${fDate(today)}'&$top=1&$orderby=dataHoraCotacao%20desc&$format=json&$select=cotacaoCompra,dataHoraCotacao`
 
         const res = await fetch(url)
         const data = await res.json()
         if (data.value && data.value.length > 0) {
           setPtaxRate(data.value[0].cotacaoCompra)
+          setPtaxDate(data.value[0].dataHoraCotacao)
         }
       } catch (e) {
         console.error('Failed to fetch PTAX, using fallback', e)
@@ -469,6 +475,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       profiles,
       users,
       ptaxRate,
+      ptaxDate,
       currencyView,
       setCurrencyView,
       updateOppStage,
@@ -506,6 +513,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       profiles,
       users,
       ptaxRate,
+      ptaxDate,
       currencyView,
     ],
   )

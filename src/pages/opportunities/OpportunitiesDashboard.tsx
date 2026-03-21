@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast'
 const COLORS = ['#2563eb', '#f59e0b', '#e11d48', '#10b981', '#8b5cf6', '#6366f1', '#14b8a6']
 
 export default function OpportunitiesDashboard() {
-  const { opps, accounts, deleteOpportunity, currencyView, setCurrencyView, ptaxRate } =
+  const { opps, accounts, deleteOpportunity, currencyView, setCurrencyView, ptaxRate, ptaxDate } =
     useCrmStore()
   const { toast } = useToast()
   const [year, setYear] = useState<string>('todos')
@@ -87,58 +87,63 @@ export default function OpportunitiesDashboard() {
             Visão analítica de todo o funil de negócios (Dashboard BI).
           </p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border">
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border">
+              <Button
+                variant={currencyView === 'BRL' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-8 text-xs px-3"
+                onClick={() => setCurrencyView('BRL')}
+              >
+                BRL
+              </Button>
+              <Button
+                variant={currencyView === 'USD' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-8 text-xs px-3"
+                onClick={() => setCurrencyView('USD')}
+              >
+                USD
+              </Button>
+            </div>
+            <Select value={year} onValueChange={setYear}>
+              <SelectTrigger className="w-[120px] bg-background">
+                <SelectValue placeholder="Ano" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Anos</SelectItem>
+                {availableYears.map((y) => (
+                  <SelectItem key={y} value={y}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={quarter} onValueChange={setQuarter}>
+              <SelectTrigger className="w-[140px] bg-background">
+                <SelectValue placeholder="Trimestre" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Trims.</SelectItem>
+                <SelectItem value="Q1">Q1 (Jan-Mar)</SelectItem>
+                <SelectItem value="Q2">Q2 (Abr-Jun)</SelectItem>
+                <SelectItem value="Q3">Q3 (Jul-Set)</SelectItem>
+                <SelectItem value="Q4">Q4 (Out-Dez)</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
-              variant={currencyView === 'BRL' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-8 text-xs px-3"
-              onClick={() => setCurrencyView('BRL')}
+              onClick={() => {
+                setEditOpp(null)
+                setOpenOpp(true)
+              }}
             >
-              BRL
-            </Button>
-            <Button
-              variant={currencyView === 'USD' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-8 text-xs px-3"
-              onClick={() => setCurrencyView('USD')}
-            >
-              USD
+              <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
             </Button>
           </div>
-          <Select value={year} onValueChange={setYear}>
-            <SelectTrigger className="w-[120px] bg-background">
-              <SelectValue placeholder="Ano" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os Anos</SelectItem>
-              {availableYears.map((y) => (
-                <SelectItem key={y} value={y}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={quarter} onValueChange={setQuarter}>
-            <SelectTrigger className="w-[140px] bg-background">
-              <SelectValue placeholder="Trimestre" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os Trims.</SelectItem>
-              <SelectItem value="Q1">Q1 (Jan-Mar)</SelectItem>
-              <SelectItem value="Q2">Q2 (Abr-Jun)</SelectItem>
-              <SelectItem value="Q3">Q3 (Jul-Set)</SelectItem>
-              <SelectItem value="Q4">Q4 (Out-Dez)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={() => {
-              setEditOpp(null)
-              setOpenOpp(true)
-            }}
-          >
-            <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
-          </Button>
+          <div className="text-[10px] text-muted-foreground mt-1 mr-1">
+            Cotação PTAX: R$ {ptaxRate.toFixed(4)} (Data: {ptaxDate ? formatDate(ptaxDate) : '-'})
+          </div>
         </div>
       </div>
 
