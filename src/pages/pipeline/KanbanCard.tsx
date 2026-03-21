@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { Opportunity } from '@/types'
 import { Badge } from '@/components/ui/badge'
-import { formatMoney, formatDate } from '@/lib/utils'
+import { formatMoney, formatDate, convertCurrency } from '@/lib/utils'
 import { Clock, AlertCircle } from 'lucide-react'
+import useCrmStore from '@/stores/useCrmStore'
 
 export function KanbanCard({ opp }: { opp: Opportunity }) {
+  const { currencyView, ptaxRate } = useCrmStore()
+
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('oppId', opp.id)
   }
@@ -14,6 +17,8 @@ export function KanbanCard({ opp }: { opp: Opportunity }) {
     morna: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
     quente: 'bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800',
   }
+
+  const convertedVal = convertCurrency(opp.value, opp.currency || 'BRL', currencyView, ptaxRate)
 
   return (
     <div
@@ -27,7 +32,14 @@ export function KanbanCard({ opp }: { opp: Opportunity }) {
       >
         {opp.title}
       </Link>
-      <div className="font-mono font-medium text-sm mb-3">{formatMoney(opp.value)}</div>
+      <div className="font-mono font-medium text-sm mb-3 flex flex-col">
+        <span>{formatMoney(convertedVal, currencyView)}</span>
+        {opp.currency && opp.currency !== currencyView && (
+          <span className="text-[10px] text-muted-foreground opacity-80">
+            Original: {formatMoney(opp.value, opp.currency)}
+          </span>
+        )}
+      </div>
 
       <div className="text-xs text-muted-foreground space-y-1.5">
         <div className="flex items-center justify-between">

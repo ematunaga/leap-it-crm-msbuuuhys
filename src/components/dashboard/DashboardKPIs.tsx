@@ -1,22 +1,30 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Briefcase, TrendingUp, DollarSign, AlertCircle } from 'lucide-react'
 import useCrmStore from '@/stores/useCrmStore'
-import { formatMoney } from '@/lib/utils'
+import { formatMoney, convertCurrency } from '@/lib/utils'
 
 export function DashboardKPIs() {
-  const { opps, activities, leads } = useCrmStore()
+  const { opps, activities, leads, currencyView, ptaxRate } = useCrmStore()
 
-  const pipelineTotal = opps.reduce((sum, o) => sum + o.value, 0)
+  const pipelineTotal = opps.reduce(
+    (sum, o) => sum + convertCurrency(o.value, o.currency || 'BRL', currencyView, ptaxRate),
+    0,
+  )
   const convertedLeads = leads.filter((l) => l.status === 'Convertido').length
   const winRate = leads.length ? Math.round((convertedLeads / leads.length) * 100) : 0
-  const forecast = opps.filter((o) => o.stage === 'Negociação').reduce((sum, o) => sum + o.value, 0)
+  const forecast = opps
+    .filter((o) => o.stage === 'Negociação')
+    .reduce(
+      (sum, o) => sum + convertCurrency(o.value, o.currency || 'BRL', currencyView, ptaxRate),
+      0,
+    )
   const criticalAlerts =
     activities.filter((a) => a.isOverdue).length + opps.filter((o) => o.isOverdue).length
 
   const kpis = [
     {
       title: 'Pipeline Total',
-      value: formatMoney(pipelineTotal),
+      value: formatMoney(pipelineTotal, currencyView),
       subtitle: 'Todas as oportunidades',
       icon: Briefcase,
       color: 'text-blue-500',
@@ -30,7 +38,7 @@ export function DashboardKPIs() {
     },
     {
       title: 'Forecast do Mês',
-      value: formatMoney(forecast),
+      value: formatMoney(forecast, currencyView),
       subtitle: 'Estágio de Negociação',
       icon: DollarSign,
       color: 'text-amber-500',

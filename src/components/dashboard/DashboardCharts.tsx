@@ -13,24 +13,32 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import useCrmStore from '@/stores/useCrmStore'
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
+import { convertCurrency } from '@/lib/utils'
 
 const COLORS = ['#2563eb', '#f59e0b', '#e11d48']
 
 export function DashboardCharts() {
-  const { opps } = useCrmStore()
+  const { opps, currencyView, ptaxRate } = useCrmStore()
 
   const pipelineData = useMemo(() => {
     const stages = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação']
     return stages.map((stage) => ({
       name: stage,
-      valor: opps.filter((o) => o.stage === stage).reduce((sum, o) => sum + o.value, 0),
+      valor: opps
+        .filter((o) => o.stage === stage)
+        .reduce(
+          (sum, o) => sum + convertCurrency(o.value, o.currency || 'BRL', currencyView, ptaxRate),
+          0,
+        ),
     }))
-  }, [opps])
+  }, [opps, currencyView, ptaxRate])
 
   const temperatureData = useMemo(() => {
     const counts = { Fria: 0, Morna: 0, Quente: 0 }
     opps.forEach((o) => {
-      if (counts[o.temperature] !== undefined) counts[o.temperature]++
+      if (counts[o.temperature as keyof typeof counts] !== undefined) {
+        counts[o.temperature as keyof typeof counts]++
+      }
     })
     return Object.entries(counts).map(([name, value]) => ({ name, value }))
   }, [opps])
@@ -43,14 +51,14 @@ export function DashboardCharts() {
         </CardHeader>
         <CardContent>
           <ChartContainer
-            config={{ valor: { label: 'Valor (R$)', color: 'hsl(var(--primary))' } }}
+            config={{ valor: { label: 'Valor', color: 'hsl(var(--primary))' } }}
             className="h-[300px]"
           >
             <BarChart data={pipelineData}>
               <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis
                 fontSize={12}
-                tickFormatter={(val) => `R$${val / 1000}k`}
+                tickFormatter={(val) => `${currencyView === 'USD' ? 'US$' : 'R$'}${val / 1000}k`}
                 tickLine={false}
                 axisLine={false}
               />

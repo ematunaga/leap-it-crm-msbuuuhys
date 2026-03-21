@@ -5,11 +5,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatMoney(value: number): string {
+export function formatMoney(value: number, currency: 'BRL' | 'USD' | string = 'BRL'): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency: currency,
   }).format(value)
+}
+
+export function convertCurrency(value: number, from: string, to: string, ptaxRate: number): number {
+  if (!value) return 0
+  const fromCurr = from.toUpperCase()
+  const toCurr = to.toUpperCase()
+  if (fromCurr === toCurr) return value
+  if (fromCurr === 'USD' && toCurr === 'BRL') return value * ptaxRate
+  if (fromCurr === 'BRL' && toCurr === 'USD') return value / ptaxRate
+  return value
 }
 
 export function formatDate(dateStr: string): string {

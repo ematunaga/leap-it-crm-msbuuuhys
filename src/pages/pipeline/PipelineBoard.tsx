@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
+import { convertCurrency } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 
 const STAGES: string[] = [
@@ -32,7 +33,7 @@ const stageLabels: Record<string, string> = {
 }
 
 export default function PipelineBoard() {
-  const { opps, updateOppStage } = useCrmStore()
+  const { opps, updateOppStage, currencyView, setCurrencyView } = useCrmStore()
   const [openOpp, setOpenOpp] = useState(false)
 
   return (
@@ -45,21 +46,41 @@ export default function PipelineBoard() {
             Vermelha).
           </p>
         </div>
-        <Dialog open={openOpp} onOpenChange={setOpenOpp}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border">
+            <Button
+              variant={currencyView === 'BRL' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-8 text-xs px-3"
+              onClick={() => setCurrencyView('BRL')}
+            >
+              BRL
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[700px]">
-            <DialogHeader>
-              <DialogTitle>Nova Oportunidade</DialogTitle>
-            </DialogHeader>
-            <div className="pt-2">
-              <OpportunityForm onSuccess={() => setOpenOpp(false)} />
-            </div>
-          </DialogContent>
-        </Dialog>
+            <Button
+              variant={currencyView === 'USD' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-8 text-xs px-3"
+              onClick={() => setCurrencyView('USD')}
+            >
+              USD
+            </Button>
+          </div>
+          <Dialog open={openOpp} onOpenChange={setOpenOpp}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" /> Nova Oportunidade
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[700px]">
+              <DialogHeader>
+                <DialogTitle>Nova Oportunidade</DialogTitle>
+              </DialogHeader>
+              <div className="pt-2">
+                <OpportunityForm onSuccess={() => setOpenOpp(false)} />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4 flex-1 min-h-[500px]">
@@ -89,6 +110,7 @@ function KanbanColumn({
   onDrop: (id: string) => void
 }) {
   const [isOver, setIsOver] = useState(false)
+  const { currencyView, ptaxRate } = useCrmStore()
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -101,7 +123,10 @@ function KanbanColumn({
     if (id) onDrop(id)
   }
 
-  const totalValue = items.reduce((sum, o) => sum + o.value, 0)
+  const totalValue = items.reduce(
+    (sum, o) => sum + convertCurrency(o.value, o.currency || 'BRL', currencyView, ptaxRate),
+    0,
+  )
 
   return (
     <div
@@ -117,7 +142,7 @@ function KanbanColumn({
         </span>
       </div>
       <div className="p-3 text-sm text-muted-foreground border-b bg-background/50">
-        R$ {(totalValue / 1000).toFixed(0)}k
+        {currencyView === 'USD' ? 'US$' : 'R$'} {(totalValue / 1000).toFixed(0)}k
       </div>
       <div className="flex-1 p-3 overflow-y-auto space-y-3">
         {items.map((opp) => (

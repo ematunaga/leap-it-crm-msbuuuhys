@@ -36,6 +36,9 @@ interface CrmStore {
   contracts: Contract[]
   profiles: AccessProfile[]
   users: AppUser[]
+  ptaxRate: number
+  currencyView: 'BRL' | 'USD'
+  setCurrencyView: (view: 'BRL' | 'USD') => void
   updateOppStage: (id: string, stage: string) => void
   addActivity: (activity: Omit<Activity, 'id'>) => void
   updateActivity: (id: string, updates: Partial<Activity>) => void
@@ -94,6 +97,11 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   )
   const [users, setUsers] = useState<AppUser[]>(() => loadState('crm_users', mockUsers))
 
+  const [ptaxRate, setPtaxRate] = useState<number>(() => loadState('crm_ptax', 5.0))
+  const [currencyView, setCurrencyView] = useState<'BRL' | 'USD'>(() =>
+    loadState('crm_currency_view', 'BRL'),
+  )
+
   useEffect(() => {
     localStorage.setItem('crm_accounts', JSON.stringify(accounts))
   }, [accounts])
@@ -124,6 +132,36 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('crm_users', JSON.stringify(users))
   }, [users])
+  useEffect(() => {
+    localStorage.setItem('crm_ptax', JSON.stringify(ptaxRate))
+  }, [ptaxRate])
+  useEffect(() => {
+    localStorage.setItem('crm_currency_view', JSON.stringify(currencyView))
+  }, [currencyView])
+
+  useEffect(() => {
+    const fetchPtax = async () => {
+      try {
+        const today = new Date()
+        const lastWeek = new Date()
+        lastWeek.setDate(today.getDate() - 7)
+
+        const fDate = (d: Date) =>
+          `${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}-${d.getFullYear()}`
+
+        const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='${fDate(lastWeek)}'&@dataFinalCotacao='${fDate(today)}'&$top=1&$orderby=dataHoraCotacao%20desc&$format=json&$select=cotacaoCompra`
+
+        const res = await fetch(url)
+        const data = await res.json()
+        if (data.value && data.value.length > 0) {
+          setPtaxRate(data.value[0].cotacaoCompra)
+        }
+      } catch (e) {
+        console.error('Failed to fetch PTAX, using fallback', e)
+      }
+    }
+    fetchPtax()
+  }, [])
 
   useEffect(() => {
     const today = new Date()
@@ -369,7 +407,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         err,
       )
 
-      // Fallback em caso da Edge Function não estar disponível ainda
       const fallbackUsers = [
         {
           name: 'Mariana Silva',
@@ -431,6 +468,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       contracts,
       profiles,
       users,
+      ptaxRate,
+      currencyView,
+      setCurrencyView,
       updateOppStage,
       addActivity,
       updateActivity,
@@ -465,6 +505,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       contracts,
       profiles,
       users,
+      ptaxRate,
+      currencyView,
     ],
   )
 

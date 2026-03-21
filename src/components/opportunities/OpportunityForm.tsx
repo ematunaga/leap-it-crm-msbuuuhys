@@ -93,7 +93,7 @@ export function OpportunityForm({
   const onSubmit = (data: any) => {
     const payload = {
       ...data,
-      value: Number(data.value) || 0,
+      value: parseFloat(Number(data.value).toFixed(2)) || 0,
       updatedAt: new Date().toISOString(),
     }
 
@@ -180,7 +180,7 @@ export function OpportunityForm({
           </div>
           <F l="Título da Oportunidade" n="title" r />
           <div className="grid grid-cols-2 gap-3">
-            <F l="Valor" n="value" t="number" r />
+            <F l="Valor" n="value" t="number" step="0.01" r />
             <S l="Moeda" n="currency" opts={OPTS.currency} r />
             <S l="Tipo de Venda" n="saleType" opts={OPTS.saleType} />
             <S l="Modalidade" n="modality" opts={OPTS.modality} />
