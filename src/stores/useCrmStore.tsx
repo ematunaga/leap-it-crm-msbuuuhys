@@ -13,6 +13,7 @@ import {
   AppUser,
 } from '@/types'
 import { toCamel, toSnake, uuidv4 } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
 
 interface CrmStore {
   accounts: Account[]
@@ -29,33 +30,34 @@ interface CrmStore {
   ptaxDate: string
   currencyView: 'BRL' | 'USD'
   setCurrencyView: (view: 'BRL' | 'USD') => void
-  updateOppStage: (id: string, stage: string) => void
-  addActivity: (activity: Omit<Activity, 'id'>) => void
-  updateActivity: (id: string, updates: Partial<Activity>) => void
-  deleteActivity: (id: string) => void
-  addAccount: (account: Omit<Account, 'id'>) => void
-  updateAccount: (id: string, updates: Partial<Account>) => void
-  deleteAccount: (id: string) => void
-  addContact: (contact: Omit<Contact, 'id'>) => void
-  updateContact: (id: string, updates: Partial<Contact>) => void
-  deleteContact: (id: string) => void
-  addOpportunity: (opp: Omit<Opportunity, 'id'>) => void
-  updateOpportunity: (id: string, updates: Partial<Opportunity>) => void
-  deleteOpportunity: (id: string) => void
-  addStakeholder: (sh: Omit<OpportunityStakeholder, 'id'>) => void
-  updateStakeholder: (id: string, updates: Partial<OpportunityStakeholder>) => void
-  deleteStakeholder: (id: string) => void
-  addProfile: (profile: Omit<AccessProfile, 'id'>) => void
-  updateProfile: (id: string, updates: Partial<AccessProfile>) => void
-  addUser: (user: Omit<AppUser, 'id'>) => void
-  updateUser: (id: string, updates: Partial<AppUser>) => void
-  deleteUser: (id: string) => void
+  updateOppStage: (id: string, stage: string) => Promise<void>
+  addActivity: (activity: Omit<Activity, 'id'>) => Promise<void>
+  updateActivity: (id: string, updates: Partial<Activity>) => Promise<void>
+  deleteActivity: (id: string) => Promise<void>
+  addAccount: (account: Omit<Account, 'id'>) => Promise<void>
+  updateAccount: (id: string, updates: Partial<Account>) => Promise<void>
+  deleteAccount: (id: string) => Promise<void>
+  addContact: (contact: Omit<Contact, 'id'>) => Promise<void>
+  updateContact: (id: string, updates: Partial<Contact>) => Promise<void>
+  deleteContact: (id: string) => Promise<void>
+  addOpportunity: (opp: Omit<Opportunity, 'id'>) => Promise<void>
+  updateOpportunity: (id: string, updates: Partial<Opportunity>) => Promise<void>
+  deleteOpportunity: (id: string) => Promise<void>
+  addStakeholder: (sh: Omit<OpportunityStakeholder, 'id'>) => Promise<void>
+  updateStakeholder: (id: string, updates: Partial<OpportunityStakeholder>) => Promise<void>
+  deleteStakeholder: (id: string) => Promise<void>
+  addProfile: (profile: Omit<AccessProfile, 'id'>) => Promise<void>
+  updateProfile: (id: string, updates: Partial<AccessProfile>) => Promise<void>
+  addUser: (user: Omit<AppUser, 'id'>) => Promise<void>
+  updateUser: (id: string, updates: Partial<AppUser>) => Promise<void>
+  deleteUser: (id: string) => Promise<void>
   syncWithPricingApp: () => Promise<void>
 }
 
 const CrmContext = createContext<CrmStore | null>(null)
 
 export function CrmProvider({ children }: { children: ReactNode }) {
+  const { toast } = useToast()
   const [isInitialized, setIsInitialized] = useState(false)
   const [accounts, setAccounts] = useState<Account[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
@@ -146,65 +148,102 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     fetchPtax()
   }, [])
 
-  const addEntity = <T extends { id: string }>(
+  const addEntity = async <T extends { id: string }>(
     table: string,
     item: Omit<T, 'id'>,
     setFn: React.Dispatch<React.SetStateAction<T[]>>,
   ) => {
     const id = uuidv4()
     const newItem = { ...item, id, createdAt: new Date().toISOString() } as unknown as T
+
+    // Optimistic UI Update
     setFn((prev) => [newItem, ...prev])
-    supabase
-      .from(table)
-      .insert(toSnake(newItem))
-      .then(({ error }) => {
-        if (error) console.error(`Error inserting into ${table}:`, error)
+
+    const { error } = await supabase.from(table).insert(toSnake(newItem))
+    if (error) {
+      console.error(`Error inserting into ${table}:`, error)
+      toast({
+        title: 'Falha na Sincronização',
+        description: `Os dados não puderam ser salvos no banco. Verifique as informações. Detalhe: ${error.message}`,
+        variant: 'destructive',
       })
+      // Rollback
+      setFn((prev) => prev.filter((i) => i.id !== id))
+      throw error
+    }
   }
 
-  const updateEntity = <T extends { id: string }>(
+  const updateEntity = async <T extends { id: string }>(
     table: string,
     id: string,
     updates: Partial<T>,
     setFn: React.Dispatch<React.SetStateAction<T[]>>,
   ) => {
     const updatedPayload = { ...updates, updatedAt: new Date().toISOString() }
-    setFn((prev) => prev.map((item) => (item.id === id ? { ...item, ...updatedPayload } : item)))
-    supabase
-      .from(table)
-      .update(toSnake(updatedPayload))
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) console.error(`Error updating ${table}:`, error)
+
+    let oldItem: T | undefined
+    setFn((prev) => {
+      const item = prev.find((i) => i.id === id)
+      if (item) oldItem = { ...item }
+      return prev.map((item) => (item.id === id ? { ...item, ...updatedPayload } : item))
+    })
+
+    const { error } = await supabase.from(table).update(toSnake(updatedPayload)).eq('id', id)
+    if (error) {
+      console.error(`Error updating ${table}:`, error)
+      toast({
+        title: 'Falha na Atualização',
+        description: `As alterações não puderam ser salvas. Detalhe: ${error.message}`,
+        variant: 'destructive',
       })
+      // Rollback
+      if (oldItem) {
+        setFn((prev) => prev.map((item) => (item.id === id ? oldItem! : item)))
+      }
+      throw error
+    }
   }
 
-  const deleteEntity = <T extends { id: string }>(
+  const deleteEntity = async <T extends { id: string }>(
     table: string,
     id: string,
     setFn: React.Dispatch<React.SetStateAction<T[]>>,
   ) => {
-    setFn((prev) => prev.filter((item) => item.id !== id))
-    supabase
-      .from(table)
-      .delete()
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) console.error(`Error deleting from ${table}:`, error)
+    let oldItem: T | undefined
+    setFn((prev) => {
+      const item = prev.find((i) => i.id === id)
+      if (item) oldItem = { ...item }
+      return prev.filter((item) => item.id !== id)
+    })
+
+    const { error } = await supabase.from(table).delete().eq('id', id)
+    if (error) {
+      console.error(`Error deleting from ${table}:`, error)
+      toast({
+        title: 'Falha na Exclusão',
+        description: `O registro não pôde ser excluído. Detalhe: ${error.message}`,
+        variant: 'destructive',
       })
+      // Rollback
+      if (oldItem) {
+        setFn((prev) => [oldItem!, ...prev])
+      }
+      throw error
+    }
   }
 
-  const addAccount = (acc: Omit<Account, 'id'>) => addEntity('accounts', acc, setAccounts)
-  const updateAccount = (id: string, updates: Partial<Account>) =>
+  const addAccount = async (acc: Omit<Account, 'id'>) => addEntity('accounts', acc, setAccounts)
+  const updateAccount = async (id: string, updates: Partial<Account>) =>
     updateEntity('accounts', id, updates, setAccounts)
-  const deleteAccount = (id: string) => deleteEntity('accounts', id, setAccounts)
+  const deleteAccount = async (id: string) => deleteEntity('accounts', id, setAccounts)
 
-  const addContact = (contact: Omit<Contact, 'id'>) => addEntity('contacts', contact, setContacts)
-  const updateContact = (id: string, updates: Partial<Contact>) =>
+  const addContact = async (contact: Omit<Contact, 'id'>) =>
+    addEntity('contacts', contact, setContacts)
+  const updateContact = async (id: string, updates: Partial<Contact>) =>
     updateEntity('contacts', id, updates, setContacts)
-  const deleteContact = (id: string) => deleteEntity('contacts', id, setContacts)
+  const deleteContact = async (id: string) => deleteEntity('contacts', id, setContacts)
 
-  const addOpportunity = (opp: Omit<Opportunity, 'id'>) => {
+  const addOpportunity = async (opp: Omit<Opportunity, 'id'>) => {
     const id = uuidv4()
     const newOpp = {
       ...opp,
@@ -213,21 +252,28 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       stageUpdatedAt: new Date().toISOString(),
       daysInStage: 0,
     } as Opportunity
+
     setOpps((prev) => [newOpp, ...prev])
-    supabase
-      .from('opportunities')
-      .insert(toSnake(newOpp))
-      .then(({ error }) => {
-        if (error) console.error('Error inserting opp:', error)
+
+    const { error } = await supabase.from('opportunities').insert(toSnake(newOpp))
+    if (error) {
+      console.error('Error inserting opp:', error)
+      toast({
+        title: 'Falha na Sincronização',
+        description: 'Não foi possível salvar a oportunidade. Verifique os campos preenchidos.',
+        variant: 'destructive',
       })
+      setOpps((prev) => prev.filter((o) => o.id !== id))
+      throw error
+    }
   }
 
-  const updateOpportunity = (id: string, updates: Partial<Opportunity>) =>
+  const updateOpportunity = async (id: string, updates: Partial<Opportunity>) =>
     updateEntity('opportunities', id, updates, setOpps)
-  const deleteOpportunity = (id: string) => deleteEntity('opportunities', id, setOpps)
+  const deleteOpportunity = async (id: string) => deleteEntity('opportunities', id, setOpps)
 
-  const updateOppStage = (id: string, stage: string) => {
-    updateEntity(
+  const updateOppStage = async (id: string, stage: string) => {
+    await updateEntity(
       'opportunities',
       id,
       { stage, stageUpdatedAt: new Date().toISOString(), daysInStage: 0 },
@@ -235,19 +281,19 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     )
   }
 
-  const addStakeholder = (sh: Omit<OpportunityStakeholder, 'id'>) =>
+  const addStakeholder = async (sh: Omit<OpportunityStakeholder, 'id'>) =>
     addEntity('opportunity_stakeholders', sh, setStakeholders)
-  const updateStakeholder = (id: string, updates: Partial<OpportunityStakeholder>) =>
+  const updateStakeholder = async (id: string, updates: Partial<OpportunityStakeholder>) =>
     updateEntity('opportunity_stakeholders', id, updates, setStakeholders)
-  const deleteStakeholder = (id: string) =>
+  const deleteStakeholder = async (id: string) =>
     deleteEntity('opportunity_stakeholders', id, setStakeholders)
 
-  const addProfile = (profile: Omit<AccessProfile, 'id'>) =>
+  const addProfile = async (profile: Omit<AccessProfile, 'id'>) =>
     addEntity('access_profiles', profile, setProfiles)
-  const updateProfile = (id: string, updates: Partial<AccessProfile>) =>
+  const updateProfile = async (id: string, updates: Partial<AccessProfile>) =>
     updateEntity('access_profiles', id, updates, setProfiles)
 
-  const addUser = (user: Omit<AppUser, 'id'>) => {
+  const addUser = async (user: Omit<AppUser, 'id'>) => {
     const id = uuidv4()
     const newUser = {
       ...user,
@@ -256,30 +302,42 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       syncStatus: 'pending',
     } as AppUser
     setUsers((prev) => [newUser, ...prev])
-    supabase
-      .from('app_users')
-      .insert(toSnake(newUser))
-      .then(({ error }) => {
-        if (error) console.error('Error adding user:', error)
+
+    const { error } = await supabase.from('app_users').insert(toSnake(newUser))
+    if (error) {
+      console.error('Error adding user:', error)
+      toast({
+        title: 'Erro de Sincronização',
+        description: 'Não foi possível salvar o usuário.',
+        variant: 'destructive',
       })
+      setUsers((prev) => prev.filter((u) => u.id !== id))
+      throw error
+    }
   }
 
-  const updateUser = (id: string, updates: Partial<AppUser>) => {
-    updateEntity('app_users', id, { ...updates, syncStatus: 'pending' }, setUsers)
+  const updateUser = async (id: string, updates: Partial<AppUser>) => {
+    await updateEntity('app_users', id, { ...updates, syncStatus: 'pending' }, setUsers)
   }
 
-  const deleteUser = (id: string) => deleteEntity('app_users', id, setUsers)
+  const deleteUser = async (id: string) => deleteEntity('app_users', id, setUsers)
 
-  const addActivity = (act: Omit<Activity, 'id'>) => {
+  const addActivity = async (act: Omit<Activity, 'id'>) => {
     const id = uuidv4()
     const newAct = { ...act, id, createdAt: new Date().toISOString() } as Activity
     setActivities((prev) => [newAct, ...prev])
-    supabase
-      .from('activities')
-      .insert(toSnake(newAct))
-      .then(({ error }) => {
-        if (error) console.error('Error adding activity:', error)
+
+    const { error } = await supabase.from('activities').insert(toSnake(newAct))
+    if (error) {
+      console.error('Error adding activity:', error)
+      toast({
+        title: 'Erro de Sincronização',
+        description: 'Não foi possível salvar a atividade.',
+        variant: 'destructive',
       })
+      setActivities((prev) => prev.filter((a) => a.id !== id))
+      throw error
+    }
 
     if (act.opportunityId) {
       const opp = opps.find((o) => o.id === act.opportunityId)
@@ -292,25 +350,29 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         const isPendingStatus =
           act.status === 'planejada' || act.status === 'em_andamento' || act.status === 'atrasada'
         const updates: Partial<Opportunity> = { temperature: newTemp }
+
         if (isPendingStatus && act.summary) {
           updates.nextStep = act.summary
           updates.nextStepDate = act.scheduledDate
         }
-        updateOpportunity(act.opportunityId, updates)
+
+        updateOpportunity(act.opportunityId, updates).catch((e) =>
+          console.error('Failed cascading update to opportunity', e),
+        )
       }
     }
 
     if (act.status === 'concluida' && act.accountId) {
       updateAccount(act.accountId, {
         lastInteractionAt: act.interactionAt || new Date().toISOString(),
-      })
+      }).catch((e) => console.error('Failed cascading update to account', e))
     }
   }
 
-  const updateActivity = (id: string, updates: Partial<Activity>) =>
+  const updateActivity = async (id: string, updates: Partial<Activity>) =>
     updateEntity('activities', id, updates, setActivities)
 
-  const deleteActivity = (id: string) => deleteEntity('activities', id, setActivities)
+  const deleteActivity = async (id: string) => deleteEntity('activities', id, setActivities)
 
   const syncWithPricingApp = async () => {
     const SYNC_API_KEY = 'leap_pzpaeiowz9kom1u4jah7nk'
@@ -334,16 +396,23 @@ export function CrmProvider({ children }: { children: ReactNode }) {
             lastSyncAt: new Date().toISOString(),
           }))
 
-        newUsers.forEach((u: any) => addUser(u))
+        for (const u of newUsers) {
+          await addUser(u)
+        }
 
-        users.forEach((u) => {
+        for (const u of users) {
           if (u.syncStatus !== 'synced') {
-            updateUser(u.id, { syncStatus: 'synced', lastSyncAt: new Date().toISOString() })
+            await updateUser(u.id, { syncStatus: 'synced', lastSyncAt: new Date().toISOString() })
           }
-        })
+        }
       }
     } catch (err) {
       console.error('[Sync] Edge function falhou. Utilizando fallback local.', err)
+      toast({
+        title: 'Erro de Integração',
+        description: 'A sincronização falhou.',
+        variant: 'destructive',
+      })
     }
   }
 

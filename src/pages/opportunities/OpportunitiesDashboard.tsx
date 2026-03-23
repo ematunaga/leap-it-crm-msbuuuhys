@@ -34,6 +34,7 @@ export default function OpportunitiesDashboard() {
   const [quarter, setQuarter] = useState<string>('todos')
   const [openOpp, setOpenOpp] = useState(false)
   const [editOpp, setEditOpp] = useState<any>(null)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   const filteredOpps = useMemo(() => {
     return opps.filter((o) => {
@@ -82,6 +83,21 @@ export default function OpportunitiesDashboard() {
       ),
     ),
   ).sort()
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Excluir oportunidade permanentemente?')) {
+      setIsDeleting(id)
+      try {
+        await deleteOpportunity(id)
+        toast({ title: 'Oportunidade excluída com sucesso.' })
+      } catch (e) {
+        // error toast is handled by the store layer
+        console.error('Failed to delete opportunity', e)
+      } finally {
+        setIsDeleting(null)
+      }
+    }
+  }
 
   if (!can('opportunities', 'visualizar')) return <AccessDenied />
 
@@ -283,7 +299,12 @@ export default function OpportunitiesDashboard() {
                     return (
                       <tr
                         key={o.id}
-                        className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                        className={cn(
+                          'border-b last:border-0 hover:bg-muted/30 transition-colors',
+                          {
+                            'opacity-50 pointer-events-none': isDeleting === o.id,
+                          },
+                        )}
                       >
                         <td className="px-4 py-3 font-medium">
                           <Link
@@ -322,6 +343,7 @@ export default function OpportunitiesDashboard() {
                                   setEditOpp(o)
                                   setOpenOpp(true)
                                 }}
+                                disabled={isDeleting === o.id}
                               >
                                 <Edit className="w-4 h-4 text-muted-foreground" />
                               </Button>
@@ -331,12 +353,8 @@ export default function OpportunitiesDashboard() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={() => {
-                                  if (window.confirm('Excluir oportunidade permanentemente?')) {
-                                    deleteOpportunity(o.id)
-                                    toast({ title: 'Oportunidade excluída.' })
-                                  }
-                                }}
+                                onClick={() => handleDelete(o.id)}
+                                disabled={isDeleting === o.id}
                               >
                                 <Trash2 className="w-4 h-4 text-destructive" />
                               </Button>

@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -73,6 +73,7 @@ export function OpportunityForm({
 }) {
   const { addOpportunity, updateOpportunity, accounts } = useCrmStore()
   const { toast } = useToast()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
     register,
@@ -128,21 +129,71 @@ export function OpportunityForm({
     }
   }, [watchValues, setValue])
 
-  const onSubmit = (data: any) => {
-    const payload = {
-      ...data,
-      value: parseFloat(Number(data.value).toFixed(2)) || 0,
-      updatedAt: new Date().toISOString(),
-    }
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true)
+    try {
+      // 1. Sanitize payload to avoid silent Supabase DB rejections on empty strings
+      const numericFields = [
+        'value',
+        'clientBudget',
+        'budgetMargin',
+        'totalCost',
+        'fatorLeapit',
+        'icmsHardwarePercent',
+        'ipiPercent',
+        'issHardwarePercent',
+        'icmsSoftwarePercent',
+        'pisCofinsPercent',
+        'issSoftwarePercent',
+        'sellerCommissionPercent',
+        'netMarginPercent',
+        'winProbability',
+        'dollarRate',
+        'mrrValue',
+        'commissionPercent',
+        'daysInStage',
+      ]
 
-    if (initialData?.id) {
-      updateOpportunity(initialData.id, payload)
-      toast({ title: 'Oportunidade atualizada!' })
-    } else {
-      addOpportunity({ ...payload, createdAt: new Date().toISOString() })
-      toast({ title: 'Oportunidade criada com sucesso!' })
+      const dateFields = [
+        'expectedCloseDate',
+        'nextStepDate',
+        'lastInteractionAt',
+        'stageUpdatedAt',
+      ]
+
+      const payload = { ...data }
+
+      numericFields.forEach((field) => {
+        if (payload[field] === '' || payload[field] === null || payload[field] === undefined) {
+          payload[field] = null
+        } else {
+          payload[field] = parseFloat(Number(payload[field]).toFixed(2))
+        }
+      })
+
+      dateFields.forEach((field) => {
+        if (payload[field] === '') {
+          payload[field] = null
+        }
+      })
+
+      payload.updatedAt = new Date().toISOString()
+
+      // 2. Await the DB operation to guarantee persistence before closing
+      if (initialData?.id) {
+        await updateOpportunity(initialData.id, payload)
+        toast({ title: 'Oportunidade atualizada com sucesso!' })
+      } else {
+        await addOpportunity({ ...payload, createdAt: new Date().toISOString() })
+        toast({ title: 'Oportunidade criada com sucesso!' })
+      }
+      onSuccess()
+    } catch (error) {
+      // The store handles the error toast, we just prevent the form from closing
+      console.error('Form submission failed', error)
+    } finally {
+      setIsSubmitting(false)
     }
-    onSuccess()
   }
 
   return (
@@ -177,6 +228,7 @@ export function OpportunityForm({
                 </option>
               ))}
             </select>
+            {errors.accountId && <span className="text-[10px] text-destructive">Obrigatório</span>}
           </div>
           <FieldInput l="Título da Oportunidade" n="title" r register={register} errors={errors} />
           <div className="grid grid-cols-2 gap-3">
@@ -466,8 +518,8 @@ export function OpportunityForm({
         </TabsContent>
       </Tabs>
       <div className="flex justify-end pt-2 pb-4">
-        <Button type="submit" size="sm">
-          Salvar Oportunidade
+        <Button type="submit" size="sm" disabled={isSubmitting}>
+          {isSubmitting ? 'Salvando...' : 'Salvar Oportunidade'}
         </Button>
       </div>
     </form>
