@@ -307,6 +307,11 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const updateActivity = (id: string, updates: Partial<Activity>) =>
+    updateEntity('activities', id, updates, setActivities)
+
+  const deleteActivity = (id: string) => deleteEntity('activities', id, setActivities)
+
   const syncWithPricingApp = async () => {
     const SYNC_API_KEY = 'leap_pzpaeiowz9kom1u4jah7nk'
     try {
