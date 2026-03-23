@@ -204,7 +204,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
           setPtaxDate(data.value[0].dataHoraCotacao)
         }
       } catch (e) {
-        console.error('Failed to fetch PTAX, using fallback', e)
+        console.warn('Failed to fetch PTAX, using fallback', e)
       }
     }
     fetchPtax()
