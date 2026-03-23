@@ -1,0 +1,2 @@
+ALTER TABLE public.app_users 
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
