@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
-import { convertCurrency, formatDate } from '@/lib/utils'
+import { convertCurrency, formatDate, formatMoney } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 import { useRbac } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
@@ -169,180 +169,14 @@ function KanbanColumn({
           {items.length}
         </span>
       </div>
-      <div className="p-3 text-sm text-muted-foreground border-b bg-background/50">
-        {currencyView === 'USD' ? 'US
- : 'R
-
-
-}${val / 1000}k`}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  width={80}
-                />
-                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {byPartner.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-subtle">
-          <CardHeader>
-            <CardTitle className="text-lg">Projeção por Trimestre</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{ value: { label: 'Valor' } }} className="h-[300px]">
-              <BarChart data={byQuarterChart}>
-                <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis
-                  fontSize={12}
-                  tickFormatter={(val) => `${currencyView === 'USD' ? 'US
-
-
- : 'R
-
-
-}${val / 1000}k`}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} />
-                <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+      <div className="p-3 text-sm text-muted-foreground border-b bg-background/50 font-mono">
+        {formatMoney(totalValue, currencyView)}
       </div>
-
-      <Card className="shadow-subtle">
-        <CardHeader>
-          <CardTitle className="text-lg">Lista de Oportunidades Mapeadas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3 rounded-tl-md">Oportunidade</th>
-                  <th className="px-4 py-3">Conta</th>
-                  <th className="px-4 py-3">Fabricante</th>
-                  <th className="px-4 py-3">Fase</th>
-                  <th className="px-4 py-3 text-right">Fechamento</th>
-                  <th className="px-4 py-3 text-right">Valor</th>
-                  <th className="px-4 py-3 text-right rounded-tr-md"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOpps.length > 0 ? (
-                  filteredOpps.map((o) => {
-                    const acc = accounts.find((a) => a.id === o.accountId)
-                    const convertedVal = convertCurrency(
-                      o.value,
-                      o.currency || 'BRL',
-                      currencyView,
-                      ptaxRate,
-                    )
-                    return (
-                      <tr
-                        key={o.id}
-                        className="border-b last:border-0 hover:bg-muted/30 transition-colors"
-                      >
-                        <td className="px-4 py-3 font-medium">
-                          <Link
-                            to={`/oportunidades/${o.id}`}
-                            className="hover:underline hover:text-primary"
-                          >
-                            {o.title}
-                          </Link>
-                        </td>
-                        <td className="px-4 py-3">{acc?.name || '-'}</td>
-                        <td className="px-4 py-3 capitalize">{o.partner || '-'}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant="outline" className="capitalize">
-                            {o.stage.replace('_', ' ')}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-right text-muted-foreground">
-                          {formatDate(o.expectedCloseDate || o.nextStepDate)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-medium">
-                          <div>{formatMoney(convertedVal, currencyView)}</div>
-                          {o.currency && o.currency !== currencyView && (
-                            <div className="text-[10px] text-muted-foreground">
-                              ({formatMoney(o.value, o.currency)})
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <RequirePermission module="opportunities" action="editar">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => {
-                                  setEditOpp(o)
-                                  setOpenOpp(true)
-                                }}
-                              >
-                                <Edit className="w-4 h-4 text-muted-foreground" />
-                              </Button>
-                            </RequirePermission>
-                            <RequirePermission module="opportunities" action="excluir">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => {
-                                  if (window.confirm('Excluir oportunidade permanentemente?')) {
-                                    deleteOpportunity(o.id)
-                                    toast({ title: 'Oportunidade excluída.' })
-                                  }
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4 text-destructive" />
-                              </Button>
-                            </RequirePermission>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                      Nenhuma oportunidade encontrada com os filtros atuais.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog open={openOpp} onOpenChange={setOpenOpp}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>{editOpp ? 'Editar Oportunidade' : 'Nova Oportunidade'}</DialogTitle>
-          </DialogHeader>
-          <div className="pt-2">
-            <OpportunityForm initialData={editOpp} onSuccess={() => setOpenOpp(false)} />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[150px]">
+        {items.map((o) => (
+          <KanbanCard key={o.id} opp={o} />
+        ))}
+      </div>
     </div>
   )
 }
-
