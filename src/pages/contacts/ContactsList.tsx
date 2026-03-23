@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { GenericDataTable } from '../shared/GenericDataTable'
 import { ContactForm } from '@/components/contacts/ContactForm'
+import { ImportDataModal } from '@/components/shared/ImportDataModal'
 import useCrmStore from '@/stores/useCrmStore'
 import { Contact } from '@/types'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -17,6 +18,7 @@ import { RequirePermission } from '@/components/RequirePermission'
 export default function ContactsList() {
   const { contacts, accounts, deleteContact } = useCrmStore()
   const [open, setOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const { toast } = useToast()
   const { can } = useRbac()
 
@@ -111,9 +113,14 @@ export default function ContactsList() {
 
   const actions = (
     <RequirePermission module="contacts" action="criar">
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" /> Novo Contato
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-2 h-4 w-4" /> Importar CSV
+        </Button>
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Novo Contato
+        </Button>
+      </div>
     </RequirePermission>
   )
 
@@ -127,6 +134,7 @@ export default function ContactsList() {
         searchKey="name"
         actions={actions}
       />
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -137,6 +145,12 @@ export default function ContactsList() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ImportDataModal
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        entityType="contact"
+      />
     </>
   )
 }

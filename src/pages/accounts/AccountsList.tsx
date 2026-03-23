@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { GenericDataTable } from '../shared/GenericDataTable'
 import { AccountForm } from '@/components/accounts/AccountForm'
+import { ImportDataModal } from '@/components/shared/ImportDataModal'
 import useCrmStore from '@/stores/useCrmStore'
 import { Account } from '@/types'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { useRbac } from '@/hooks/use-rbac'
@@ -16,6 +17,7 @@ import { RequirePermission } from '@/components/RequirePermission'
 export default function AccountsList() {
   const { accounts, deleteAccount } = useCrmStore()
   const [open, setOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const { toast } = useToast()
   const { can } = useRbac()
 
@@ -137,9 +139,14 @@ export default function AccountsList() {
 
   const actions = (
     <RequirePermission module="accounts" action="criar">
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" /> Nova Conta
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-2 h-4 w-4" /> Importar CSV
+        </Button>
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Nova Conta
+        </Button>
+      </div>
     </RequirePermission>
   )
 
@@ -153,6 +160,7 @@ export default function AccountsList() {
         searchKey="name"
         actions={actions}
       />
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
@@ -163,6 +171,12 @@ export default function AccountsList() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ImportDataModal
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        entityType="account"
+      />
     </>
   )
 }

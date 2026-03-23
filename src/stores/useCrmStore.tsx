@@ -35,9 +35,11 @@ interface CrmStore {
   updateActivity: (id: string, updates: Partial<Activity>) => Promise<void>
   deleteActivity: (id: string) => Promise<void>
   addAccount: (account: Omit<Account, 'id'>) => Promise<void>
+  bulkAddAccounts: (accounts: Omit<Account, 'id'>[]) => Promise<void>
   updateAccount: (id: string, updates: Partial<Account>) => Promise<void>
   deleteAccount: (id: string) => Promise<void>
   addContact: (contact: Omit<Contact, 'id'>) => Promise<void>
+  bulkAddContacts: (contacts: Omit<Contact, 'id'>[]) => Promise<void>
   updateContact: (id: string, updates: Partial<Contact>) => Promise<void>
   deleteContact: (id: string) => Promise<void>
   addOpportunity: (opp: Omit<Opportunity, 'id'>) => Promise<void>
@@ -149,7 +151,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         if (cmpData) setCompetitors(toCamel(cmpData))
         if (ctrData) setContracts(toCamel(ctrData))
 
-        // Create Auto-Snapshot if there is data
         if (accData && oppData && (accData.length > 0 || oppData.length > 0)) {
           const snapsStr = localStorage.getItem('leapit_snapshots')
           let shouldSave = true
@@ -160,7 +161,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
                 const last = snaps[snaps.length - 1]
                 const hours =
                   (new Date().getTime() - new Date(last.timestamp).getTime()) / (1000 * 60 * 60)
-                if (hours < 1) shouldSave = false // only snapshot once per hour per device
+                if (hours < 1) shouldSave = false
               }
             } catch (e) {
               console.warn('Failed to parse local snapshots for auto-save', e)
@@ -217,8 +218,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   ) => {
     const id = uuidv4()
     const newItem = { ...item, id, createdAt: new Date().toISOString() } as unknown as T
-
-    // Optimistic UI Update
     setFn((prev) => [newItem, ...prev])
 
     const { error } = await supabase.from(table).insert(toSnake(newItem))
@@ -229,7 +228,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         description: `Os dados não puderam ser salvos no banco. Verifique as informações. Detalhe: ${error.message}`,
         variant: 'destructive',
       })
-      // Rollback
       setFn((prev) => prev.filter((i) => i.id !== id))
       throw error
     }
@@ -258,7 +256,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         description: `As alterações não puderam ser salvas. Detalhe: ${error.message}`,
         variant: 'destructive',
       })
-      // Rollback
       if (oldItem) {
         setFn((prev) => prev.map((item) => (item.id === id ? oldItem! : item)))
       }
@@ -286,7 +283,6 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         description: `O registro não pôde ser excluído. Detalhe: ${error.message}`,
         variant: 'destructive',
       })
-      // Rollback
       if (oldItem) {
         setFn((prev) => [oldItem!, ...prev])
       }
@@ -340,12 +336,60 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const addAccount = async (acc: Omit<Account, 'id'>) => addEntity('accounts', acc, setAccounts)
+
+  const bulkAddAccounts = async (newAccounts: Omit<Account, 'id'>[]) => {
+    if (newAccounts.length === 0) return
+    const items = newAccounts.map((item) => ({
+      ...item,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    })) as Account[]
+
+    setAccounts((prev) => [...items, ...prev])
+
+    const { error } = await supabase.from('accounts').insert(items.map(toSnake))
+    if (error) {
+      console.error('Error bulk adding accounts:', error)
+      toast({
+        title: 'Falha na Importação',
+        description: `Detalhe: ${error.message}`,
+        variant: 'destructive',
+      })
+      setAccounts((prev) => prev.filter((p) => !items.find((i) => i.id === p.id)))
+      throw error
+    }
+  }
+
   const updateAccount = async (id: string, updates: Partial<Account>) =>
     updateEntity('accounts', id, updates, setAccounts)
   const deleteAccount = async (id: string) => deleteEntity('accounts', id, setAccounts)
 
   const addContact = async (contact: Omit<Contact, 'id'>) =>
     addEntity('contacts', contact, setContacts)
+
+  const bulkAddContacts = async (newContacts: Omit<Contact, 'id'>[]) => {
+    if (newContacts.length === 0) return
+    const items = newContacts.map((item) => ({
+      ...item,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    })) as Contact[]
+
+    setContacts((prev) => [...items, ...prev])
+
+    const { error } = await supabase.from('contacts').insert(items.map(toSnake))
+    if (error) {
+      console.error('Error bulk adding contacts:', error)
+      toast({
+        title: 'Falha na Importação',
+        description: `Detalhe: ${error.message}`,
+        variant: 'destructive',
+      })
+      setContacts((prev) => prev.filter((p) => !items.find((i) => i.id === p.id)))
+      throw error
+    }
+  }
+
   const updateContact = async (id: string, updates: Partial<Contact>) =>
     updateEntity('contacts', id, updates, setContacts)
   const deleteContact = async (id: string) => deleteEntity('contacts', id, setContacts)
@@ -572,9 +616,11 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       updateOpportunity,
       deleteOpportunity,
       addAccount,
+      bulkAddAccounts,
       updateAccount,
       deleteAccount,
       addContact,
+      bulkAddContacts,
       updateContact,
       deleteContact,
       addOpportunity,
