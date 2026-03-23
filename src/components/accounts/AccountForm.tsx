@@ -99,6 +99,8 @@ export function AccountForm({
       setLoadingBranches((p) => ({ ...p, [index]: true }))
       try {
         const data = await fetchCnpj(val)
+        setValue(`branches.${index}.name` as any, data.razao_social)
+        setValue(`branches.${index}.tradingName` as any, data.nome_fantasia || data.razao_social)
         setValue(`branches.${index}.zip` as any, data.cep)
         setValue(
           `branches.${index}.address` as any,
@@ -216,7 +218,18 @@ export function AccountForm({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => append({ cnpj: '', ie: '', zip: '', address: '', city: '', state: '' })}
+            onClick={() =>
+              append({
+                cnpj: '',
+                name: '',
+                tradingName: '',
+                ie: '',
+                zip: '',
+                address: '',
+                city: '',
+                state: '',
+              })
+            }
             className="h-6 text-xs px-2"
           >
             <Plus className="w-3 h-3 mr-1" /> Add Filial
@@ -250,7 +263,10 @@ export function AccountForm({
                   )}
                 </div>
               </div>
-              <F l="Insc. Estadual" n={`branches.${i}.ie`} /> <F l="CEP" n={`branches.${i}.zip`} />
+              <F l="Insc. Estadual" n={`branches.${i}.ie`} />
+              <F l="Razão Social" n={`branches.${i}.name`} />
+              <F l="Nome Fantasia" n={`branches.${i}.tradingName`} />
+              <F l="CEP" n={`branches.${i}.zip`} />
               <div className="space-y-1">
                 <Label className="text-[11px]">Cidade / UF</Label>
                 <div className="flex gap-2">

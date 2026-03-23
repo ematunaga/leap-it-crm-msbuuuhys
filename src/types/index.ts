@@ -9,6 +9,8 @@ export interface Account {
   headquartersState?: string
   headquartersZip?: string
   branches?: {
+    name?: string
+    tradingName?: string
     cnpj: string
     ie: string
     address: string
