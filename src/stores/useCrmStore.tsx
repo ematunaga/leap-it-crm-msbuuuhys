@@ -12,18 +12,7 @@ import {
   AccessProfile,
   AppUser,
 } from '@/types'
-import {
-  mockAccounts,
-  mockActivities,
-  mockContacts,
-  mockOpps,
-  mockStakeholders,
-  mockLeads,
-  mockCompetitors,
-  mockContracts,
-  mockProfiles,
-  mockUsers,
-} from '@/lib/mock-data'
+import { toCamel, toSnake, uuidv4 } from '@/lib/utils'
 
 interface CrmStore {
   accounts: Account[]
@@ -66,83 +55,71 @@ interface CrmStore {
 
 const CrmContext = createContext<CrmStore | null>(null)
 
-const loadState = <T,>(key: string, defaultState: T): T => {
-  try {
-    const saved = localStorage.getItem(key)
-    if (saved) return JSON.parse(saved)
-  } catch (e) {
-    console.error('Error loading state from localStorage', e)
-  }
-  return defaultState
-}
-
 export function CrmProvider({ children }: { children: ReactNode }) {
-  const [accounts, setAccounts] = useState<Account[]>(() => loadState('crm_accounts', mockAccounts))
-  const [contacts, setContacts] = useState<Contact[]>(() => loadState('crm_contacts', mockContacts))
-  const [opps, setOpps] = useState<Opportunity[]>(() => loadState('crm_opps', mockOpps))
-  const [stakeholders, setStakeholders] = useState<OpportunityStakeholder[]>(() =>
-    loadState('crm_stakeholders', mockStakeholders),
-  )
-  const [activities, setActivities] = useState<Activity[]>(() =>
-    loadState('crm_activities', mockActivities),
-  )
-  const [leads, setLeads] = useState<Lead[]>(() => loadState('crm_leads', mockLeads))
-  const [competitors, setCompetitors] = useState<Competitor[]>(() =>
-    loadState('crm_competitors', mockCompetitors),
-  )
-  const [contracts, setContracts] = useState<Contract[]>(() =>
-    loadState('crm_contracts', mockContracts),
-  )
-  const [profiles, setProfiles] = useState<AccessProfile[]>(() =>
-    loadState('crm_profiles', mockProfiles),
-  )
-  const [users, setUsers] = useState<AppUser[]>(() => loadState('crm_users', mockUsers))
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [opps, setOpps] = useState<Opportunity[]>([])
+  const [stakeholders, setStakeholders] = useState<OpportunityStakeholder[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [leads, setLeads] = useState<Lead[]>([])
+  const [competitors, setCompetitors] = useState<Competitor[]>([])
+  const [contracts, setContracts] = useState<Contract[]>([])
+  const [profiles, setProfiles] = useState<AccessProfile[]>([])
+  const [users, setUsers] = useState<AppUser[]>([])
 
-  const [ptaxRate, setPtaxRate] = useState<number>(() => loadState('crm_ptax', 5.0))
-  const [ptaxDate, setPtaxDate] = useState<string>(() => loadState('crm_ptax_date', ''))
-  const [currencyView, setCurrencyView] = useState<'BRL' | 'USD'>(() =>
-    loadState('crm_currency_view', 'BRL'),
-  )
+  const [ptaxRate, setPtaxRate] = useState<number>(5.0)
+  const [ptaxDate, setPtaxDate] = useState<string>('')
+  const [currencyView, setCurrencyView] = useState<'BRL' | 'USD'>('BRL')
 
   useEffect(() => {
-    localStorage.setItem('crm_accounts', JSON.stringify(accounts))
-  }, [accounts])
-  useEffect(() => {
-    localStorage.setItem('crm_contacts', JSON.stringify(contacts))
-  }, [contacts])
-  useEffect(() => {
-    localStorage.setItem('crm_opps', JSON.stringify(opps))
-  }, [opps])
-  useEffect(() => {
-    localStorage.setItem('crm_stakeholders', JSON.stringify(stakeholders))
-  }, [stakeholders])
-  useEffect(() => {
-    localStorage.setItem('crm_activities', JSON.stringify(activities))
-  }, [activities])
-  useEffect(() => {
-    localStorage.setItem('crm_leads', JSON.stringify(leads))
-  }, [leads])
-  useEffect(() => {
-    localStorage.setItem('crm_competitors', JSON.stringify(competitors))
-  }, [competitors])
-  useEffect(() => {
-    localStorage.setItem('crm_contracts', JSON.stringify(contracts))
-  }, [contracts])
-  useEffect(() => {
-    localStorage.setItem('crm_profiles', JSON.stringify(profiles))
-  }, [profiles])
-  useEffect(() => {
-    localStorage.setItem('crm_users', JSON.stringify(users))
-  }, [users])
-  useEffect(() => {
-    localStorage.setItem('crm_ptax', JSON.stringify(ptaxRate))
-  }, [ptaxRate])
-  useEffect(() => {
-    localStorage.setItem('crm_ptax_date', JSON.stringify(ptaxDate))
-  }, [ptaxDate])
-  useEffect(() => {
-    localStorage.setItem('crm_currency_view', JSON.stringify(currencyView))
-  }, [currencyView])
+    const loadData = async () => {
+      try {
+        const [
+          { data: accData },
+          { data: conData },
+          { data: oppData },
+          { data: actData },
+          { data: stkData },
+          { data: prfData },
+          { data: usrData },
+          { data: ldData },
+          { data: cmpData },
+          { data: ctrData },
+        ] = await Promise.all([
+          supabase.from('accounts').select('*').order('created_at', { ascending: false }),
+          supabase.from('contacts').select('*').order('created_at', { ascending: false }),
+          supabase.from('opportunities').select('*').order('created_at', { ascending: false }),
+          supabase.from('activities').select('*').order('created_at', { ascending: false }),
+          supabase
+            .from('opportunity_stakeholders')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          supabase.from('access_profiles').select('*').order('created_at', { ascending: false }),
+          supabase.from('app_users').select('*').order('created_at', { ascending: false }),
+          supabase.from('leads').select('*').order('created_at', { ascending: false }),
+          supabase.from('competitors').select('*'),
+          supabase.from('contracts').select('*'),
+        ])
+
+        if (accData) setAccounts(toCamel(accData))
+        if (conData) setContacts(toCamel(conData))
+        if (oppData) setOpps(toCamel(oppData))
+        if (actData) setActivities(toCamel(actData))
+        if (stkData) setStakeholders(toCamel(stkData))
+        if (prfData) setProfiles(toCamel(prfData))
+        if (usrData) setUsers(toCamel(usrData))
+        if (ldData) setLeads(toCamel(ldData))
+        if (cmpData) setCompetitors(toCamel(cmpData))
+        if (ctrData) setContracts(toCamel(ctrData))
+      } catch (err) {
+        console.error('Error fetching CRM initial data:', err)
+      } finally {
+        setIsInitialized(true)
+      }
+    }
+    loadData()
+  }, [])
 
   useEffect(() => {
     const fetchPtax = async () => {
@@ -169,306 +146,234 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     fetchPtax()
   }, [])
 
-  useEffect(() => {
-    const today = new Date()
-    const todayStr = today.toISOString().split('T')[0]
-
-    setActivities((prev) =>
-      prev.map((a) => {
-        const isPending =
-          a.status === 'planejada' || a.status === 'em_andamento' || a.status === 'Pendente'
-        const dateStr =
-          a.scheduledDate?.split('T')[0] ||
-          a.date?.split('T')[0] ||
-          a.createdAt?.split('T')[0] ||
-          todayStr
-        if (isPending && dateStr < todayStr) {
-          return { ...a, isOverdue: true, status: 'atrasada' }
-        }
-        return a
-      }),
-    )
-
-    setOpps((prev) =>
-      prev.map((o) => {
-        const stageDate = new Date(o.stageUpdatedAt || o.createdAt || todayStr)
-        const diffTime = Math.abs(today.getTime() - stageDate.getTime())
-        const daysInStage = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        const isOverdue = !!(o.nextStepDate && o.nextStepDate < todayStr)
-        return { ...o, daysInStage, isOverdue }
-      }),
-    )
-  }, [])
-
-  const updateOppStage = (id: string, stage: string) => {
-    setOpps((prev) =>
-      prev.map((o) =>
-        o.id === id ? { ...o, stage, stageUpdatedAt: new Date().toISOString(), daysInStage: 0 } : o,
-      ),
-    )
+  const addEntity = <T extends { id: string }>(
+    table: string,
+    item: Omit<T, 'id'>,
+    setFn: React.Dispatch<React.SetStateAction<T[]>>,
+  ) => {
+    const id = uuidv4()
+    const newItem = { ...item, id, createdAt: new Date().toISOString() } as unknown as T
+    setFn((prev) => [newItem, ...prev])
+    supabase
+      .from(table)
+      .insert(toSnake(newItem))
+      .then(({ error }) => {
+        if (error) console.error(`Error inserting into ${table}:`, error)
+      })
   }
 
-  const updateOpportunity = (id: string, updates: Partial<Opportunity>) => {
-    setOpps((prev) => prev.map((o) => (o.id === id ? { ...o, ...updates } : o)))
+  const updateEntity = <T extends { id: string }>(
+    table: string,
+    id: string,
+    updates: Partial<T>,
+    setFn: React.Dispatch<React.SetStateAction<T[]>>,
+  ) => {
+    const updatedPayload = { ...updates, updatedAt: new Date().toISOString() }
+    setFn((prev) => prev.map((item) => (item.id === id ? { ...item, ...updatedPayload } : item)))
+    supabase
+      .from(table)
+      .update(toSnake(updatedPayload))
+      .eq('id', id)
+      .then(({ error }) => {
+        if (error) console.error(`Error updating ${table}:`, error)
+      })
   }
 
-  const deleteOpportunity = (id: string) => {
-    setOpps((prev) => prev.filter((o) => o.id !== id))
+  const deleteEntity = <T extends { id: string }>(
+    table: string,
+    id: string,
+    setFn: React.Dispatch<React.SetStateAction<T[]>>,
+  ) => {
+    setFn((prev) => prev.filter((item) => item.id !== id))
+    supabase
+      .from(table)
+      .delete()
+      .eq('id', id)
+      .then(({ error }) => {
+        if (error) console.error(`Error deleting from ${table}:`, error)
+      })
   }
 
-  const updateAccount = (id: string, updates: Partial<Account>) => {
-    setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)))
-  }
+  const addAccount = (acc: Omit<Account, 'id'>) => addEntity('accounts', acc, setAccounts)
+  const updateAccount = (id: string, updates: Partial<Account>) =>
+    updateEntity('accounts', id, updates, setAccounts)
+  const deleteAccount = (id: string) => deleteEntity('accounts', id, setAccounts)
 
-  const deleteAccount = (id: string) => {
-    setAccounts((prev) => prev.filter((a) => a.id !== id))
-  }
-
-  const updateContact = (id: string, updates: Partial<Contact>) => {
-    setContacts((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)))
-  }
-
-  const deleteContact = (id: string) => {
-    setContacts((prev) => prev.filter((c) => c.id !== id))
-  }
-
-  const updateActivity = (id: string, updates: Partial<Activity>) => {
-    setActivities((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)))
-  }
-
-  const deleteActivity = (id: string) => {
-    setActivities((prev) => prev.filter((a) => a.id !== id))
-  }
-
-  const updateProfile = (id: string, updates: Partial<AccessProfile>) => {
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
-      ),
-    )
-  }
-
-  const addAccount = (acc: Omit<Account, 'id'>) => {
-    const newAcc = { ...acc, id: Math.random().toString(36).substring(2, 9) } as Account
-    setAccounts((prev) => [newAcc, ...prev])
-  }
-
-  const addContact = (contact: Omit<Contact, 'id'>) => {
-    const newContact = { ...contact, id: Math.random().toString(36).substring(2, 9) } as Contact
-    setContacts((prev) => [newContact, ...prev])
-  }
+  const addContact = (contact: Omit<Contact, 'id'>) => addEntity('contacts', contact, setContacts)
+  const updateContact = (id: string, updates: Partial<Contact>) =>
+    updateEntity('contacts', id, updates, setContacts)
+  const deleteContact = (id: string) => deleteEntity('contacts', id, setContacts)
 
   const addOpportunity = (opp: Omit<Opportunity, 'id'>) => {
+    const id = uuidv4()
     const newOpp = {
       ...opp,
-      id: Math.random().toString(36).substring(2, 9),
+      id,
       createdAt: new Date().toISOString(),
       stageUpdatedAt: new Date().toISOString(),
       daysInStage: 0,
     } as Opportunity
     setOpps((prev) => [newOpp, ...prev])
+    supabase
+      .from('opportunities')
+      .insert(toSnake(newOpp))
+      .then(({ error }) => {
+        if (error) console.error('Error inserting opp:', error)
+      })
   }
 
-  const addStakeholder = (sh: Omit<OpportunityStakeholder, 'id'>) => {
-    const newSh = {
-      ...sh,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toISOString(),
-    } as OpportunityStakeholder
-    setStakeholders((prev) => [newSh, ...prev])
-  }
+  const updateOpportunity = (id: string, updates: Partial<Opportunity>) =>
+    updateEntity('opportunities', id, updates, setOpps)
+  const deleteOpportunity = (id: string) => deleteEntity('opportunities', id, setOpps)
 
-  const updateStakeholder = (id: string, updates: Partial<OpportunityStakeholder>) => {
-    setStakeholders((prev) =>
-      prev.map((sh) =>
-        sh.id === id ? { ...sh, ...updates, updatedAt: new Date().toISOString() } : sh,
-      ),
+  const updateOppStage = (id: string, stage: string) => {
+    updateEntity(
+      'opportunities',
+      id,
+      { stage, stageUpdatedAt: new Date().toISOString(), daysInStage: 0 },
+      setOpps,
     )
   }
 
-  const deleteStakeholder = (id: string) => {
-    setStakeholders((prev) => prev.filter((sh) => sh.id !== id))
-  }
+  const addStakeholder = (sh: Omit<OpportunityStakeholder, 'id'>) =>
+    addEntity('opportunity_stakeholders', sh, setStakeholders)
+  const updateStakeholder = (id: string, updates: Partial<OpportunityStakeholder>) =>
+    updateEntity('opportunity_stakeholders', id, updates, setStakeholders)
+  const deleteStakeholder = (id: string) =>
+    deleteEntity('opportunity_stakeholders', id, setStakeholders)
 
-  const addProfile = (profile: Omit<AccessProfile, 'id'>) => {
-    const newProfile = {
-      ...profile,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toISOString(),
-    } as AccessProfile
-    setProfiles((prev) => [newProfile, ...prev])
-  }
+  const addProfile = (profile: Omit<AccessProfile, 'id'>) =>
+    addEntity('access_profiles', profile, setProfiles)
+  const updateProfile = (id: string, updates: Partial<AccessProfile>) =>
+    updateEntity('access_profiles', id, updates, setProfiles)
 
   const addUser = (user: Omit<AppUser, 'id'>) => {
+    const id = uuidv4()
     const newUser = {
       ...user,
-      id: Math.random().toString(36).substring(2, 9),
+      id,
       createdAt: new Date().toISOString(),
       syncStatus: 'pending',
     } as AppUser
     setUsers((prev) => [newUser, ...prev])
+    supabase
+      .from('app_users')
+      .insert(toSnake(newUser))
+      .then(({ error }) => {
+        if (error) console.error('Error adding user:', error)
+      })
   }
 
   const updateUser = (id: string, updates: Partial<AppUser>) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, ...updates, syncStatus: 'pending' } : u)),
-    )
+    updateEntity('app_users', id, { ...updates, syncStatus: 'pending' }, setUsers)
   }
 
-  const deleteUser = (id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id))
-  }
+  const deleteUser = (id: string) => deleteEntity('app_users', id, setUsers)
 
   const addActivity = (act: Omit<Activity, 'id'>) => {
-    const newAct = {
-      ...act,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toISOString(),
-    } as Activity
+    const id = uuidv4()
+    const newAct = { ...act, id, createdAt: new Date().toISOString() } as Activity
     setActivities((prev) => [newAct, ...prev])
+    supabase
+      .from('activities')
+      .insert(toSnake(newAct))
+      .then(({ error }) => {
+        if (error) console.error('Error adding activity:', error)
+      })
 
     if (act.opportunityId) {
-      setOpps((prev) =>
-        prev.map((o) => {
-          if (o.id === act.opportunityId) {
-            let newTemp = o.temperature
-            if (act.outcome === 'positivo') newTemp = 'quente'
-            if (act.outcome === 'neutro') newTemp = 'morna'
-            if (act.outcome === 'negativo') newTemp = 'fria'
+      const opp = opps.find((o) => o.id === act.opportunityId)
+      if (opp) {
+        let newTemp = opp.temperature
+        if (act.outcome === 'positivo') newTemp = 'quente'
+        if (act.outcome === 'neutro') newTemp = 'morna'
+        if (act.outcome === 'negativo') newTemp = 'fria'
 
-            const isPendingStatus =
-              act.status === 'planejada' ||
-              act.status === 'em_andamento' ||
-              act.status === 'atrasada'
-
-            return {
-              ...o,
-              temperature: newTemp,
-              ...(isPendingStatus && act.summary
-                ? { nextStep: act.summary, nextStepDate: act.scheduledDate }
-                : {}),
-            }
-          }
-          return o
-        }),
-      )
+        const isPendingStatus =
+          act.status === 'planejada' || act.status === 'em_andamento' || act.status === 'atrasada'
+        const updates: Partial<Opportunity> = { temperature: newTemp }
+        if (isPendingStatus && act.summary) {
+          updates.nextStep = act.summary
+          updates.nextStepDate = act.scheduledDate
+        }
+        updateOpportunity(act.opportunityId, updates)
+      }
     }
 
     if (act.status === 'concluida' && act.accountId) {
-      setAccounts((prev) =>
-        prev.map((a) =>
-          a.id === act.accountId
-            ? { ...a, lastInteractionAt: act.interactionAt || new Date().toISOString() }
-            : a,
-        ),
-      )
+      updateAccount(act.accountId, {
+        lastInteractionAt: act.interactionAt || new Date().toISOString(),
+      })
     }
   }
 
   const syncWithPricingApp = async () => {
     const SYNC_API_KEY = 'leap_pzpaeiowz9kom1u4jah7nk'
-
     try {
       const { data, error } = await supabase.functions.invoke('sync-users', {
         body: { apiKey: SYNC_API_KEY },
       })
-
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
       if (data && data.users) {
-        setUsers((prev) => {
-          const existingEmails = new Set(prev.map((u) => u.email))
-          const newUsers = data.users
-            .filter((u: any) => !existingEmails.has(u.email))
-            .map(
-              (u: any) =>
-                ({
-                  id: Math.random().toString(36).substring(2, 9),
-                  name: u.name,
-                  email: u.email,
-                  role: u.role,
-                  status: 'ativo',
-                  origin: u.origin || 'precificacao',
-                  syncStatus: 'synced',
-                  lastSyncAt: new Date().toISOString(),
-                  createdAt: new Date().toISOString(),
-                }) as AppUser,
-            )
+        const existingEmails = new Set(users.map((u) => u.email))
+        const newUsers = data.users
+          .filter((u: any) => !existingEmails.has(u.email))
+          .map((u: any) => ({
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            status: 'ativo',
+            origin: u.origin || 'precificacao',
+            syncStatus: 'synced',
+            lastSyncAt: new Date().toISOString(),
+          }))
 
-          return [
-            ...prev.map((u) => ({
-              ...u,
-              syncStatus: 'synced',
-              lastSyncAt: new Date().toISOString(),
-            })),
-            ...newUsers,
-          ]
+        newUsers.forEach((u: any) => addUser(u))
+
+        users.forEach((u) => {
+          if (u.syncStatus !== 'synced') {
+            updateUser(u.id, { syncStatus: 'synced', lastSyncAt: new Date().toISOString() })
+          }
         })
       }
     } catch (err) {
-      console.error(
-        '[Sync] Edge function falhou ou não implantada. Utilizando fallback local.',
-        err,
-      )
-
-      const fallbackUsers = [
-        {
-          name: 'Mariana Silva',
-          email: 'mariana.silva@leappricing.com',
-          role: 'Analista de Precificação',
-          origin: 'precificacao',
-        },
-        {
-          name: 'Lucas Fernandes',
-          email: 'lucas.fernandes@leappricing.com',
-          role: 'Coordenador de Vendas',
-          origin: 'precificacao',
-        },
-        {
-          name: 'Renata Gomes',
-          email: 'renata.gomes@leappricing.com',
-          role: 'Diretora de Estratégia',
-          origin: 'precificacao',
-        },
-      ]
-
-      setUsers((prev) => {
-        const existingEmails = new Set(prev.map((u) => u.email))
-        const newUsers = fallbackUsers
-          .filter((u) => !existingEmails.has(u.email))
-          .map(
-            (u) =>
-              ({
-                id: Math.random().toString(36).substring(2, 9),
-                ...u,
-                status: 'ativo',
-                syncStatus: 'synced',
-                lastSyncAt: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-              }) as AppUser,
-          )
-
-        return [
-          ...prev.map((u) => ({
-            ...u,
-            syncStatus: 'synced',
-            lastSyncAt: new Date().toISOString(),
-          })),
-          ...newUsers,
-        ]
-      })
+      console.error('[Sync] Edge function falhou. Utilizando fallback local.', err)
     }
   }
+
+  const computedActivities = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    return activities.map((a) => {
+      const isPending =
+        a.status === 'planejada' || a.status === 'em_andamento' || a.status === 'Pendente'
+      const dateStr =
+        a.scheduledDate?.split('T')[0] || a.date?.split('T')[0] || a.createdAt?.split('T')[0] || ''
+      if (isPending && dateStr && dateStr < todayStr) {
+        return { ...a, isOverdue: true, status: 'atrasada' }
+      }
+      return a
+    })
+  }, [activities])
+
+  const computedOpps = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    return opps.map((o) => {
+      const stageDate = new Date(o.stageUpdatedAt || o.createdAt || todayStr)
+      const diffTime = Math.abs(new Date().getTime() - stageDate.getTime())
+      const daysInStage = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      const isOverdue = !!(o.nextStepDate && o.nextStepDate < todayStr)
+      return { ...o, daysInStage, isOverdue }
+    })
+  }, [opps])
 
   const value = useMemo(
     () => ({
       accounts,
       contacts,
-      opps,
+      opps: computedOpps,
       stakeholders,
-      activities,
+      activities: computedActivities,
       leads,
       competitors,
       contracts,
@@ -504,9 +409,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     [
       accounts,
       contacts,
-      opps,
+      computedOpps,
       stakeholders,
-      activities,
+      computedActivities,
       leads,
       competitors,
       contracts,
@@ -518,7 +423,22 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     ],
   )
 
-  return <CrmContext.Provider value={value}>{children}</CrmContext.Provider>
+  return (
+    <CrmContext.Provider value={value}>
+      {!isInitialized ? (
+        <div className="flex h-screen w-full flex-col items-center justify-center bg-muted/20">
+          <div className="animate-pulse flex flex-col items-center gap-4">
+            <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <p className="text-muted-foreground font-medium text-sm">
+              Sincronizando banco de dados...
+            </p>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
+    </CrmContext.Provider>
+  )
 }
 
 export default function useCrmStore() {
