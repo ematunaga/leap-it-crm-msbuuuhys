@@ -83,7 +83,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     if (snaps) {
       try {
         setLocalSnapshots(JSON.parse(snaps))
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Failed to parse local snapshots', e)
+      }
     }
   }, [])
 
@@ -160,7 +162,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
                   (new Date().getTime() - new Date(last.timestamp).getTime()) / (1000 * 60 * 60)
                 if (hours < 1) shouldSave = false // only snapshot once per hour per device
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('Failed to parse local snapshots for auto-save', e)
+            }
           }
           if (shouldSave) {
             saveLocalSnapshot({
