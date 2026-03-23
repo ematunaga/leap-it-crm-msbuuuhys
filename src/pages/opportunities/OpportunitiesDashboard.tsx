@@ -35,8 +35,6 @@ export default function OpportunitiesDashboard() {
   const [openOpp, setOpenOpp] = useState(false)
   const [editOpp, setEditOpp] = useState<any>(null)
 
-  if (!can('opportunities', 'visualizar')) return <AccessDenied />
-
   const filteredOpps = useMemo(() => {
     return opps.filter((o) => {
       const date = new Date(o.expectedCloseDate || o.nextStepDate || new Date())
@@ -84,6 +82,8 @@ export default function OpportunitiesDashboard() {
       ),
     ),
   ).sort()
+
+  if (!can('opportunities', 'visualizar')) return <AccessDenied />
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
