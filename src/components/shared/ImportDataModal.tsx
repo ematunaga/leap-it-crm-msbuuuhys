@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import * as XLSX from 'xlsx'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Upload, FileText, AlertCircle, CheckCircle2, Loader2, ArrowRight } from 'lucide-react'
+import { Upload, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import useCrmStore from '@/stores/useCrmStore'
 import { Account, Contact } from '@/types'
@@ -97,7 +98,7 @@ export function ImportDataModal({
     'upload',
   )
   const [file, setFile] = useState<File | null>(null)
-  const [csvData, setCsvData] = useState<string[][]>([])
+  const [parsedData, setParsedData] = useState<string[][]>([])
   const [headers, setHeaders] = useState<string[]>([])
   const [mapping, setMapping] = useState<Record<string, string>>({})
   const [previewData, setPreviewData] = useState<any[]>([])
@@ -112,7 +113,7 @@ export function ImportDataModal({
   const reset = () => {
     setStep('upload')
     setFile(null)
-    setCsvData([])
+    setParsedData([])
     setHeaders([])
     setMapping({})
     setPreviewData([])
@@ -129,38 +130,79 @@ export function ImportDataModal({
     if (selected) setFile(selected)
   }
 
+  const processData = (parsed: string[][]) => {
+    const cleaned = parsed.filter((row) =>
+      row.some((cell) => cell !== undefined && cell !== null && String(cell).trim() !== ''),
+    )
+
+    if (cleaned.length < 2) {
+      return toast({
+        title: 'Arquivo inválido',
+        description: 'O arquivo deve ter ao menos cabeçalho e uma linha de dados.',
+        variant: 'destructive',
+      })
+    }
+    const rawHeaders = cleaned[0].map((h) => String(h).trim())
+    setHeaders(rawHeaders)
+    setParsedData(cleaned)
+
+    const initialMapping: Record<string, string> = {}
+    rawHeaders.forEach((h) => {
+      const norm = normalize(h)
+      fields.forEach((f) => {
+        if (normalize(f.label).includes(norm) || norm.includes(normalize(f.key)))
+          initialMapping[f.key] = h
+      })
+    })
+    setMapping(initialMapping)
+    setStep('mapping')
+  }
+
   const parseFile = () => {
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = e.target?.result as string
-      const parsed = parseCSV(text)
-      if (parsed.length < 2)
-        return toast({
-          title: 'Arquivo inválido',
-          description: 'O CSV deve ter ao menos cabeçalho e uma linha.',
-          variant: 'destructive',
-        })
-      const rawHeaders = parsed[0].map((h) => h.trim())
-      setHeaders(rawHeaders)
-      setCsvData(parsed)
+    const fileExt = file.name.split('.').pop()?.toLowerCase()
 
-      const initialMapping: Record<string, string> = {}
-      rawHeaders.forEach((h) => {
-        const norm = normalize(h)
-        fields.forEach((f) => {
-          if (normalize(f.label).includes(norm) || norm.includes(normalize(f.key)))
-            initialMapping[f.key] = h
-        })
+    if (fileExt === 'csv') {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const text = e.target?.result as string
+        processData(parseCSV(text))
+      }
+      reader.readAsText(file)
+    } else if (fileExt === 'xlsx' || fileExt === 'xls') {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer)
+          const workbook = XLSX.read(data, { type: 'array' })
+          const firstSheetName = workbook.SheetNames[0]
+          const worksheet = workbook.Sheets[firstSheetName]
+          const parsed = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: '',
+          }) as string[][]
+          processData(parsed)
+        } catch (err) {
+          toast({
+            title: 'Erro ao processar Excel',
+            description:
+              'Ocorreu um erro ao tentar ler o arquivo. Verifique se não está corrompido.',
+            variant: 'destructive',
+          })
+        }
+      }
+      reader.readAsArrayBuffer(file)
+    } else {
+      toast({
+        title: 'Formato não suportado',
+        description: 'Por favor, selecione um arquivo .csv, .xlsx ou .xls',
+        variant: 'destructive',
       })
-      setMapping(initialMapping)
-      setStep('mapping')
     }
-    reader.readAsText(file)
   }
 
   const analyze = () => {
-    const rows = csvData.slice(1)
+    const rows = parsedData.slice(1)
     const prev: any[] = []
     const errs: Record<number, string[]> = {}
 
@@ -178,11 +220,14 @@ export function ImportDataModal({
       newEmails = new Set<string>()
 
     rows.forEach((row, i) => {
-      if (row.length === 1 && !row[0]) return
+      if (row.length === 1 && (!row[0] || String(row[0]).trim() === '')) return
       const obj: any = {}
       fields.forEach((f) => {
         const headerIdx = headers.indexOf(mapping[f.key])
-        if (headerIdx !== -1) obj[f.key] = row[headerIdx]?.trim() || ''
+        if (headerIdx !== -1) {
+          const cellValue = row[headerIdx]
+          obj[f.key] = cellValue !== undefined && cellValue !== null ? String(cellValue).trim() : ''
+        }
       })
 
       const lineErrors: string[] = []
@@ -243,7 +288,9 @@ export function ImportDataModal({
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Importar {entityType === 'account' ? 'Contas' : 'Contatos'}</DialogTitle>
-          <DialogDescription>Siga as etapas para importar seus dados via CSV.</DialogDescription>
+          <DialogDescription>
+            Siga as etapas para importar seus dados via planilha.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
@@ -251,11 +298,11 @@ export function ImportDataModal({
             <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-10 bg-muted/20">
               <Upload className="w-10 h-10 text-muted-foreground mb-4" />
               <p className="text-sm text-muted-foreground mb-4">
-                Selecione um arquivo CSV (separado por vírgulas)
+                Selecione uma planilha (Excel ou CSV)
               </p>
               <input
                 type="file"
-                accept=".csv"
+                accept=".csv, .xlsx, .xls"
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileChange}

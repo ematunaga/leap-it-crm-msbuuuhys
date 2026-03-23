@@ -115,7 +115,7 @@ export default function ContactsList() {
     <RequirePermission module="contacts" action="criar">
       <div className="flex gap-2">
         <Button variant="outline" onClick={() => setImportOpen(true)}>
-          <Upload className="mr-2 h-4 w-4" /> Importar CSV
+          <Upload className="mr-2 h-4 w-4" /> Importar Planilha
         </Button>
         <Button onClick={() => setOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Novo Contato
