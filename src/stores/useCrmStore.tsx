@@ -48,7 +48,7 @@ interface CrmStore {
   deleteStakeholder: (id: string) => Promise<void>
   addProfile: (profile: Omit<AccessProfile, 'id'>) => Promise<void>
   updateProfile: (id: string, updates: Partial<AccessProfile>) => Promise<void>
-  addUser: (user: Omit<AppUser, 'id'>) => Promise<void>
+  addUser: (user: Omit<AppUser, 'id'> & { id?: string }) => Promise<void>
   updateUser: (id: string, updates: Partial<AppUser>) => Promise<void>
   deleteUser: (id: string) => Promise<void>
   syncWithPricingApp: () => Promise<void>
@@ -400,8 +400,8 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const updateProfile = async (id: string, updates: Partial<AccessProfile>) =>
     updateEntity('access_profiles', id, updates, setProfiles)
 
-  const addUser = async (user: Omit<AppUser, 'id'>) => {
-    const id = uuidv4()
+  const addUser = async (user: Omit<AppUser, 'id'> & { id?: string }) => {
+    const id = user.id || uuidv4()
     const newUser = {
       ...user,
       id,
@@ -494,11 +494,12 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         const newUsers = data.users
           .filter((u: any) => !existingEmails.has(u.email))
           .map((u: any) => ({
+            id: u.id,
             name: u.name,
             email: u.email,
             role: u.role,
             status: 'ativo',
-            origin: u.origin || 'precificacao',
+            origin: u.origin || 'central_auth',
             syncStatus: 'synced',
             lastSyncAt: new Date().toISOString(),
           }))

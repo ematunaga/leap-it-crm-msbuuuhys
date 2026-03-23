@@ -46,7 +46,7 @@ export default function UsersList() {
       await syncWithPricingApp()
       toast({
         title: 'Sincronização concluída!',
-        description: 'Os usuários da plataforma de precificação foram importados com sucesso.',
+        description: 'Os usuários da base centralizada foram sincronizados com sucesso.',
         variant: 'default',
       })
     } catch (error) {
@@ -89,7 +89,9 @@ export default function UsersList() {
     {
       key: 'origin',
       label: 'Origem',
-      render: (val: string) => <span className="capitalize">{val || 'CRM'}</span>,
+      render: (val: string) => (
+        <span className="capitalize">{val === 'central_auth' ? 'Base Central' : val || 'CRM'}</span>
+      ),
     },
     {
       key: 'syncStatus',
@@ -154,7 +156,7 @@ export default function UsersList() {
     <>
       <GenericDataTable
         title="Usuários e Equipe"
-        subtitle="Gestão centralizada de contas e acessos interligados com outros sistemas."
+        subtitle="Gestão centralizada de contas e acessos interligados com a base unificada de autenticação."
         data={users}
         columns={columns}
         searchKey="name"
