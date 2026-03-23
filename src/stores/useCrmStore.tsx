@@ -52,6 +52,9 @@ interface CrmStore {
   updateUser: (id: string, updates: Partial<AppUser>) => Promise<void>
   deleteUser: (id: string) => Promise<void>
   syncWithPricingApp: () => Promise<void>
+  restoreBackup: (backupData: any) => Promise<void>
+  localSnapshots: { id: string; timestamp: string }[]
+  restoreLocalSnapshot: (id: string) => Promise<void>
 }
 
 const CrmContext = createContext<CrmStore | null>(null)
@@ -73,6 +76,35 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   const [ptaxRate, setPtaxRate] = useState<number>(5.0)
   const [ptaxDate, setPtaxDate] = useState<string>('')
   const [currencyView, setCurrencyView] = useState<'BRL' | 'USD'>('BRL')
+  const [localSnapshots, setLocalSnapshots] = useState<{ id: string; timestamp: string }[]>([])
+
+  useEffect(() => {
+    const snaps = localStorage.getItem('leapit_snapshots')
+    if (snaps) {
+      try {
+        setLocalSnapshots(JSON.parse(snaps))
+      } catch (e) {}
+    }
+  }, [])
+
+  const saveLocalSnapshot = (data: any) => {
+    try {
+      const snapsStr = localStorage.getItem('leapit_snapshots')
+      let snaps = snapsStr ? JSON.parse(snapsStr) : []
+      const id = Date.now().toString()
+      const payload = JSON.stringify(data)
+      localStorage.setItem(`leapit_snap_${id}`, payload)
+      snaps.push({ id, timestamp: new Date().toISOString() })
+      if (snaps.length > 5) {
+        const oldest = snaps.shift()
+        localStorage.removeItem(`leapit_snap_${oldest.id}`)
+      }
+      localStorage.setItem('leapit_snapshots', JSON.stringify(snaps))
+      setLocalSnapshots(snaps)
+    } catch (e) {
+      console.warn('Failed to save local snapshot', e)
+    }
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -114,6 +146,32 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         if (ldData) setLeads(toCamel(ldData))
         if (cmpData) setCompetitors(toCamel(cmpData))
         if (ctrData) setContracts(toCamel(ctrData))
+
+        // Create Auto-Snapshot if there is data
+        if (accData && oppData && (accData.length > 0 || oppData.length > 0)) {
+          const snapsStr = localStorage.getItem('leapit_snapshots')
+          let shouldSave = true
+          if (snapsStr) {
+            try {
+              const snaps = JSON.parse(snapsStr)
+              if (snaps.length > 0) {
+                const last = snaps[snaps.length - 1]
+                const hours =
+                  (new Date().getTime() - new Date(last.timestamp).getTime()) / (1000 * 60 * 60)
+                if (hours < 1) shouldSave = false // only snapshot once per hour per device
+              }
+            } catch (e) {}
+          }
+          if (shouldSave) {
+            saveLocalSnapshot({
+              accounts: toCamel(accData),
+              contacts: toCamel(conData),
+              opportunities: toCamel(oppData),
+              activities: toCamel(actData),
+              stakeholders: toCamel(stkData),
+            })
+          }
+        }
       } catch (err) {
         console.error('Error fetching CRM initial data:', err)
       } finally {
@@ -229,6 +287,51 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         setFn((prev) => [oldItem!, ...prev])
       }
       throw error
+    }
+  }
+
+  const restoreBackup = async (backupData: any) => {
+    try {
+      const restoreTable = async (table: string, items: any[]) => {
+        if (!items || items.length === 0) return
+        const payload = items.map(toSnake)
+        const { error } = await supabase.from(table).upsert(payload)
+        if (error) throw error
+      }
+
+      await restoreTable('accounts', backupData.accounts)
+      await restoreTable('contacts', backupData.contacts)
+      await restoreTable('opportunities', backupData.opportunities || backupData.opps)
+      await restoreTable('activities', backupData.activities)
+      await restoreTable('opportunity_stakeholders', backupData.stakeholders)
+
+      toast({
+        title: 'Restauração concluída!',
+        description: 'Os dados foram recuperados com sucesso. Recarregando o sistema...',
+      })
+      setTimeout(() => window.location.reload(), 2000)
+    } catch (e: any) {
+      console.error('Restore error:', e)
+      toast({
+        title: 'Erro na restauração',
+        description: e.message || 'Falha ao gravar no banco de dados.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const restoreLocalSnapshot = async (id: string) => {
+    try {
+      const dataStr = localStorage.getItem(`leapit_snap_${id}`)
+      if (!dataStr) throw new Error('Snapshot não encontrado no armazenamento local.')
+      const backupData = JSON.parse(dataStr)
+      await restoreBackup(backupData)
+    } catch (e: any) {
+      toast({
+        title: 'Erro ao restaurar snapshot local',
+        description: e.message,
+        variant: 'destructive',
+      })
     }
   }
 
@@ -479,6 +582,9 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       updateUser,
       deleteUser,
       syncWithPricingApp,
+      restoreBackup,
+      localSnapshots,
+      restoreLocalSnapshot,
     }),
     [
       accounts,
@@ -494,6 +600,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       ptaxRate,
       ptaxDate,
       currencyView,
+      localSnapshots,
     ],
   )
 
