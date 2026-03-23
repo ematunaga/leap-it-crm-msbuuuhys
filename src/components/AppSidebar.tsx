@@ -14,6 +14,7 @@ import {
 import {
   LayoutDashboard,
   Building2,
+  Store,
   Users,
   Briefcase,
   GitPullRequest,
@@ -34,6 +35,7 @@ const navigation = [
     items: [
       { title: 'Dashboard', url: '/', icon: LayoutDashboard, module: 'dashboard' },
       { title: 'Contas', url: '/contas', icon: Building2, module: 'accounts' },
+      { title: 'Filiais', url: '/filiais', icon: Store, module: 'accounts' },
       { title: 'Contatos', url: '/contatos', icon: Users, module: 'contacts' },
       { title: 'Oportunidades', url: '/oportunidades', icon: Briefcase, module: 'opportunities' },
       { title: 'Pipeline', url: '/pipeline', icon: GitPullRequest, module: 'opportunities' },

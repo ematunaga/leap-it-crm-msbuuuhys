@@ -106,9 +106,10 @@ export function AccountForm({
           `branches.${index}.address` as any,
           `${data.logradouro}, ${data.numero}${data.complemento ? ' - ' + data.complemento : ''}`,
         )
+        setValue(`branches.${index}.neighborhood` as any, data.bairro)
         setValue(`branches.${index}.city` as any, data.municipio)
         setValue(`branches.${index}.state` as any, data.uf)
-        toast({ title: 'Dados da filial preenchidos' })
+        toast({ title: 'Dados da filial preenchidos com sucesso' })
       } catch (err) {
         toast({ title: 'Erro ao buscar CNPJ da filial', variant: 'destructive' })
       } finally {
@@ -225,6 +226,7 @@ export function AccountForm({
                 tradingName: '',
                 ie: '',
                 zip: '',
+                neighborhood: '',
                 address: '',
                 city: '',
                 state: '',
@@ -268,6 +270,13 @@ export function AccountForm({
               <F l="Nome Fantasia" n={`branches.${i}.tradingName`} />
               <F l="CEP" n={`branches.${i}.zip`} />
               <div className="space-y-1">
+                <Label className="text-[11px]">Bairro</Label>
+                <Input
+                  className="h-8 text-xs"
+                  {...register(`branches.${i}.neighborhood` as const)}
+                />
+              </div>
+              <div className="space-y-1">
                 <Label className="text-[11px]">Cidade / UF</Label>
                 <div className="flex gap-2">
                   <Input
@@ -280,8 +289,9 @@ export function AccountForm({
                   />
                 </div>
               </div>
-              <div className="col-span-2">
-                <F l="Logradouro" n={`branches.${i}.address`} />
+              <div className="space-y-1">
+                <Label className="text-[11px]">Logradouro</Label>
+                <Input className="h-8 text-xs" {...register(`branches.${i}.address` as const)} />
               </div>
             </div>
           </div>

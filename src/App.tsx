@@ -7,6 +7,7 @@ import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 import AccountsList from './pages/accounts/AccountsList'
 import AccountDetail from './pages/accounts/AccountDetail'
+import BranchesReport from './pages/accounts/BranchesReport'
 import ContactsList from './pages/contacts/ContactsList'
 import ContactDetail from './pages/contacts/ContactDetail'
 import PipelineBoard from './pages/pipeline/PipelineBoard'
@@ -39,6 +40,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/contas" element={<AccountsList />} />
                 <Route path="/contas/:id" element={<AccountDetail />} />
+                <Route path="/filiais" element={<BranchesReport />} />
 
                 <Route path="/contatos" element={<ContactsList />} />
                 <Route path="/contatos/:id" element={<ContactDetail />} />

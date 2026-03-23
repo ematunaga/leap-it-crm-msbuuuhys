@@ -288,19 +288,43 @@ export default function AccountDetail() {
           {account.branches && account.branches.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               {account.branches.map((b, i) => (
-                <Card key={i} className="shadow-subtle">
-                  <CardContent className="pt-6 relative">
+                <Card key={i} className="shadow-subtle relative">
+                  <CardContent className="pt-6 space-y-2">
                     <Badge variant="secondary" className="absolute top-4 right-4">
                       Filial {i + 1}
                     </Badge>
-                    <p className="font-bold text-sm">CNPJ: {b.cnpj || 'Não informado'}</p>
-                    <p className="text-sm text-muted-foreground mt-1">IE: {b.ie || '-'}</p>
-                    <p className="text-sm text-muted-foreground mt-4 font-medium">
-                      {b.address || 'Sem endereço'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {b.city} {b.state ? `- ${b.state}` : ''} {b.zip ? `| CEP: ${b.zip}` : ''}
-                    </p>
+                    <div>
+                      <p className="font-bold text-base">
+                        {b.name || 'Razão Social não informada'}
+                      </p>
+                      <p className="text-sm text-muted-foreground mb-3">{b.tradingName || '-'}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div>
+                        <p className="text-[10px] uppercase font-semibold text-muted-foreground">
+                          CNPJ
+                        </p>
+                        <p className="text-sm font-mono">{b.cnpj || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase font-semibold text-muted-foreground">
+                          Insc. Estadual
+                        </p>
+                        <p className="text-sm font-mono">{b.ie || '-'}</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t">
+                      <p className="text-[10px] uppercase font-semibold text-muted-foreground mb-1">
+                        Endereço Completo
+                      </p>
+                      <p className="text-sm font-medium">{b.address || 'Sem logradouro'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {b.neighborhood && `${b.neighborhood}, `}
+                        {b.city} {b.state ? `- ${b.state}` : ''} {b.zip ? `| CEP: ${b.zip}` : ''}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

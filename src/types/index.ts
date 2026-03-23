@@ -14,6 +14,7 @@ export interface Account {
     cnpj: string
     ie: string
     address: string
+    neighborhood?: string
     city: string
     state: string
     zip: string
