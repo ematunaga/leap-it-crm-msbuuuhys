@@ -6,7 +6,12 @@ export function useRbac() {
   const { user } = useAuth()
   const { users, profiles } = useCrmStore()
 
-  const appUser = users.find((u) => u.id === user?.id || u.email === user?.email)
+  // Make the email comparison case-insensitive to prevent access issues
+  const appUser = users.find(
+    (u) =>
+      u.id === user?.id ||
+      (u.email && user?.email && u.email.toLowerCase() === user.email.toLowerCase()),
+  )
   const profile = profiles.find((p) => p.id === appUser?.profileId)
   const permissions = (profile?.permissions || {}) as PermissionsMatrix
 
