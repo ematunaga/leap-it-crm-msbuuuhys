@@ -10,11 +10,17 @@ import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
+import { RequirePermission } from '@/components/RequirePermission'
 
 export default function ContactsList() {
   const { contacts, accounts, deleteContact } = useCrmStore()
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
+  const { can } = useRbac()
+
+  if (!can('contacts', 'visualizar')) return <AccessDenied />
 
   const columns = [
     {
@@ -83,28 +89,32 @@ export default function ContactsList() {
       key: 'actions',
       label: '',
       render: (_: any, c: Contact) => (
-        <div className="flex justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              if (window.confirm('Tem certeza que deseja excluir este contato?')) {
-                deleteContact(c.id)
-                toast({ title: 'Contato excluído com sucesso.' })
-              }
-            }}
-          >
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
-        </div>
+        <RequirePermission module="contacts" action="excluir">
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (window.confirm('Tem certeza que deseja excluir este contato?')) {
+                  deleteContact(c.id)
+                  toast({ title: 'Contato excluído com sucesso.' })
+                }
+              }}
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          </div>
+        </RequirePermission>
       ),
     },
   ]
 
   const actions = (
-    <Button onClick={() => setOpen(true)}>
-      <Plus className="mr-2 h-4 w-4" /> Novo Contato
-    </Button>
+    <RequirePermission module="contacts" action="criar">
+      <Button onClick={() => setOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" /> Novo Contato
+      </Button>
+    </RequirePermission>
   )
 
   return (

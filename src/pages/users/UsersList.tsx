@@ -9,13 +9,20 @@ import { AppUser } from '@/types'
 import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
 
 export default function UsersList() {
   const { users, profiles, deleteUser, syncWithPricingApp } = useCrmStore()
   const { toast } = useToast()
+  const { permissions, profile } = useRbac()
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<AppUser | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
+
+  const canManageUsers = profile?.type === 'sistema' || !!permissions.settings?.gerenciar_usuarios
+
+  if (!canManageUsers) return <AccessDenied />
 
   const handleEdit = (u: AppUser) => {
     setEditData(u)

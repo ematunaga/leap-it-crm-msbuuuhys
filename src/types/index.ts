@@ -330,6 +330,7 @@ export interface PermissionsMatrix {
   opportunities?: PermissionScope
   contacts?: PermissionScope
   accounts?: PermissionScope
+  activities?: PermissionScope
   proposals?: PermissionScope
   tickets?: PermissionScope
   campaigns?: Omit<PermissionScope, 'escopo'>

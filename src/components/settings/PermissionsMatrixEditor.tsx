@@ -21,6 +21,7 @@ const CRUD_MODULES = [
   { key: 'opportunities', label: 'Oportunidades', scope: true },
   { key: 'contacts', label: 'Contatos', scope: true },
   { key: 'accounts', label: 'Contas', scope: true },
+  { key: 'activities', label: 'Atividades', scope: true },
   { key: 'proposals', label: 'Propostas', scope: true },
   { key: 'tickets', label: 'Tickets', scope: true },
   { key: 'campaigns', label: 'Campanhas', scope: false },
@@ -156,6 +157,7 @@ export function PermissionsMatrixEditor({ value, onChange }: any) {
                   ...value,
                   settings: {
                     ...(value.settings || {}),
+                    visualizar: v || (value.settings?.visualizar ?? false),
                     gerenciar_usuarios: v,
                     gerenciar_perfis: v,
                   },

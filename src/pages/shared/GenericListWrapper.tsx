@@ -3,11 +3,16 @@ import { GenericDataTable } from './GenericDataTable'
 import useCrmStore from '@/stores/useCrmStore'
 import { Badge } from '@/components/ui/badge'
 import { formatDate, formatMoney } from '@/lib/utils'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
 
 export default function GenericListWrapper() {
   const location = useLocation()
   const path = location.pathname.substring(1) // e.g. "leads"
   const store = useCrmStore()
+  const { can } = useRbac()
+
+  if (!can(path, 'visualizar')) return <AccessDenied />
 
   let props: any = { title: 'Página', data: [], columns: [] }
 

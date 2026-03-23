@@ -9,11 +9,17 @@ import { Account } from '@/types'
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
+import { RequirePermission } from '@/components/RequirePermission'
 
 export default function AccountsList() {
   const { accounts, deleteAccount } = useCrmStore()
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
+  const { can } = useRbac()
+
+  if (!can('accounts', 'visualizar')) return <AccessDenied />
 
   const columns = [
     {
@@ -105,32 +111,36 @@ export default function AccountsList() {
       key: 'actions',
       label: '',
       render: (_: any, acc: Account) => (
-        <div className="flex justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              if (
-                window.confirm(
-                  'Tem certeza que deseja excluir esta conta? Todas as oportunidades associadas ficarão orfãs.',
-                )
-              ) {
-                deleteAccount(acc.id)
-                toast({ title: 'Conta excluída com sucesso.' })
-              }
-            }}
-          >
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
-        </div>
+        <RequirePermission module="accounts" action="excluir">
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Tem certeza que deseja excluir esta conta? Todas as oportunidades associadas ficarão orfãs.',
+                  )
+                ) {
+                  deleteAccount(acc.id)
+                  toast({ title: 'Conta excluída com sucesso.' })
+                }
+              }}
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          </div>
+        </RequirePermission>
       ),
     },
   ]
 
   const actions = (
-    <Button onClick={() => setOpen(true)}>
-      <Plus className="mr-2 h-4 w-4" /> Nova Conta
-    </Button>
+    <RequirePermission module="accounts" action="criar">
+      <Button onClick={() => setOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" /> Nova Conta
+      </Button>
+    </RequirePermission>
   )
 
   return (

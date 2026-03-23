@@ -1,14 +1,21 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ProfilesList from './ProfilesList'
+import UsersList from '../users/UsersList'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Download, Database, HardDriveDownload } from 'lucide-react'
 import useCrmStore from '@/stores/useCrmStore'
 import { useToast } from '@/hooks/use-toast'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
+import { RequirePermission } from '@/components/RequirePermission'
 
 export default function SettingsDashboard() {
   const { accounts, contacts, opps, activities } = useCrmStore()
   const { toast } = useToast()
+  const { can, permissions } = useRbac()
+
+  if (!can('settings', 'visualizar')) return <AccessDenied />
 
   const handleExportCSV = (data: any[], filename: string) => {
     if (!data || data.length === 0) {
@@ -63,6 +70,9 @@ export default function SettingsDashboard() {
     })
   }
 
+  const canManageProfiles =
+    !!permissions.settings?.gerenciar_perfis || permissions?.settings?.gerenciar_usuarios
+
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -79,12 +89,11 @@ export default function SettingsDashboard() {
           <TabsTrigger value="geral" className="px-4 py-2">
             Geral & Dados
           </TabsTrigger>
-          <TabsTrigger value="perfis" className="px-4 py-2">
-            Perfis de Acesso (RBAC)
-          </TabsTrigger>
-          <TabsTrigger value="usuarios" className="px-4 py-2">
-            Usuários e Equipes
-          </TabsTrigger>
+          {canManageProfiles && (
+            <TabsTrigger value="perfis" className="px-4 py-2">
+              Perfis de Acesso (RBAC)
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="geral" className="mt-6 space-y-6">
@@ -110,36 +119,46 @@ export default function SettingsDashboard() {
                       Baixe dados específicos em formato de planilha para análise externa.
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExportCSV(accounts, 'Contas')}
-                    >
-                      Contas
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExportCSV(contacts, 'Contatos')}
-                    >
-                      Contatos
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExportCSV(opps, 'Oportunidades')}
-                    >
-                      Oportunidades
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExportCSV(activities, 'Atividades')}
-                    >
-                      Atividades
-                    </Button>
-                  </div>
+                  <RequirePermission
+                    module="settings"
+                    action="exportar"
+                    fallback={
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        Você não possui permissão para exportar dados.
+                      </p>
+                    }
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportCSV(accounts, 'Contas')}
+                      >
+                        Contas
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportCSV(contacts, 'Contatos')}
+                      >
+                        Contatos
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportCSV(opps, 'Oportunidades')}
+                      >
+                        Oportunidades
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportCSV(activities, 'Atividades')}
+                      >
+                        Atividades
+                      </Button>
+                    </div>
+                  </RequirePermission>
                 </div>
 
                 <div className="space-y-4 border p-5 rounded-xl bg-card">
@@ -153,28 +172,32 @@ export default function SettingsDashboard() {
                       segurança.
                     </p>
                   </div>
-                  <div>
-                    <Button onClick={handleFullBackup} className="w-full sm:w-auto">
-                      Baixar Backup Completo (.JSON)
-                    </Button>
-                  </div>
+                  <RequirePermission
+                    module="settings"
+                    action="exportar"
+                    fallback={
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        Acesso restrito a administradores.
+                      </p>
+                    }
+                  >
+                    <div>
+                      <Button onClick={handleFullBackup} className="w-full sm:w-auto">
+                        Baixar Backup Completo (.JSON)
+                      </Button>
+                    </div>
+                  </RequirePermission>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="perfis" className="mt-6">
-          <ProfilesList />
-        </TabsContent>
-
-        <TabsContent value="usuarios" className="mt-6">
-          <Card className="shadow-subtle">
-            <CardContent className="pt-6 text-center text-muted-foreground py-12">
-              Gestão de usuários da plataforma deve ser feita na aba "Usuários" do menu lateral.
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {canManageProfiles && (
+          <TabsContent value="perfis" className="mt-6">
+            <ProfilesList />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

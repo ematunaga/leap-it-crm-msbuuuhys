@@ -16,11 +16,17 @@ import { ContactForm } from '@/components/contacts/ContactForm'
 import NotFound from '../NotFound'
 import { Mail, Phone, MapPin, Briefcase, Edit } from 'lucide-react'
 import { useState } from 'react'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
+import { RequirePermission } from '@/components/RequirePermission'
 
 export default function ContactDetail() {
   const { id } = useParams()
   const { contacts, accounts, activities, opps } = useCrmStore()
   const [openEdit, setOpenEdit] = useState(false)
+  const { can } = useRbac()
+
+  if (!can('contacts', 'visualizar')) return <AccessDenied />
 
   const contact = contacts.find((c) => c.id === id)
   if (!contact) return <NotFound />
@@ -68,28 +74,32 @@ export default function ContactDetail() {
             </div>
           </div>
         </div>
-        <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Edit className="w-4 h-4 mr-2" /> Editar Contato
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Editar Contato</DialogTitle>
-            </DialogHeader>
-            <div className="pt-2">
-              <ContactForm initialData={contact} onSuccess={() => setOpenEdit(false)} />
-            </div>
-          </DialogContent>
-        </Dialog>
+        <RequirePermission module="contacts" action="editar">
+          <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Edit className="w-4 h-4 mr-2" /> Editar Contato
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Editar Contato</DialogTitle>
+              </DialogHeader>
+              <div className="pt-2">
+                <ContactForm initialData={contact} onSuccess={() => setOpenEdit(false)} />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </RequirePermission>
       </div>
 
       <Tabs defaultValue="360" className="w-full">
         <TabsList className="bg-muted">
           <TabsTrigger value="360">Visão 360º</TabsTrigger>
-          <TabsTrigger value="opportunities">Oportunidades Relacionadas</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          {can('opportunities', 'visualizar') && (
+            <TabsTrigger value="opportunities">Oportunidades Relacionadas</TabsTrigger>
+          )}
+          {can('activities', 'visualizar') && <TabsTrigger value="timeline">Timeline</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="360" className="mt-4 space-y-4 animate-fade-in">
@@ -195,68 +205,72 @@ export default function ContactDetail() {
           </div>
         </TabsContent>
 
-        <TabsContent value="opportunities" className="mt-4">
-          {contactOpps.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {contactOpps.map((o) => (
-                <Card
-                  key={o.id}
-                  className="shadow-subtle flex flex-col justify-between p-5 hover:border-primary/50 transition-colors"
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <Link
-                        to={`/oportunidades/${o.id}`}
-                        className="font-bold text-lg hover:text-primary hover:underline line-clamp-1"
-                      >
-                        {o.title}
-                      </Link>
-                      <Badge variant="outline" className="capitalize">
-                        {o.stage.replace('_', ' ')}
-                      </Badge>
+        {can('opportunities', 'visualizar') && (
+          <TabsContent value="opportunities" className="mt-4">
+            {contactOpps.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {contactOpps.map((o) => (
+                  <Card
+                    key={o.id}
+                    className="shadow-subtle flex flex-col justify-between p-5 hover:border-primary/50 transition-colors"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <Link
+                          to={`/oportunidades/${o.id}`}
+                          className="font-bold text-lg hover:text-primary hover:underline line-clamp-1"
+                        >
+                          {o.title}
+                        </Link>
+                        <Badge variant="outline" className="capitalize">
+                          {o.stage.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <p className="font-bold text-lg font-mono">{formatMoney(o.value)}</p>
                     </div>
-                    <p className="font-bold text-lg font-mono">{formatMoney(o.value)}</p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center border rounded-xl bg-card text-muted-foreground shadow-subtle">
-              Nenhuma oportunidade vinculada à conta deste contato.
-            </div>
-          )}
-        </TabsContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center border rounded-xl bg-card text-muted-foreground shadow-subtle">
+                Nenhuma oportunidade vinculada à conta deste contato.
+              </div>
+            )}
+          </TabsContent>
+        )}
 
-        <TabsContent value="timeline" className="mt-4">
-          <Card className="shadow-subtle">
-            <CardContent className="pt-6">
-              {contactActivities.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">
-                  Nenhuma atividade registrada na conta.
-                </p>
-              ) : (
-                <div className="space-y-6">
-                  {contactActivities.map((a) => (
-                    <div key={a.id} className="flex gap-4">
-                      <div className="w-24 text-sm text-muted-foreground shrink-0">
-                        {formatDate(a.date)}
+        {can('activities', 'visualizar') && (
+          <TabsContent value="timeline" className="mt-4">
+            <Card className="shadow-subtle">
+              <CardContent className="pt-6">
+                {contactActivities.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">
+                    Nenhuma atividade registrada na conta.
+                  </p>
+                ) : (
+                  <div className="space-y-6">
+                    {contactActivities.map((a) => (
+                      <div key={a.id} className="flex gap-4">
+                        <div className="w-24 text-sm text-muted-foreground shrink-0">
+                          {formatDate(a.date)}
+                        </div>
+                        <div className="flex flex-col gap-1 pb-6 border-l pl-4 relative before:absolute before:left-[-5px] before:top-1 before:w-2 before:h-2 before:bg-primary before:rounded-full">
+                          <span className="font-medium">{a.type}</span>
+                          <span className="text-sm">{a.summary}</span>
+                          {a.outcome && (
+                            <Badge variant="outline" className="w-fit mt-1">
+                              {a.outcome}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-1 pb-6 border-l pl-4 relative before:absolute before:left-[-5px] before:top-1 before:w-2 before:h-2 before:bg-primary before:rounded-full">
-                        <span className="font-medium">{a.type}</span>
-                        <span className="text-sm">{a.summary}</span>
-                        {a.outcome && (
-                          <Badge variant="outline" className="w-fit mt-1">
-                            {a.outcome}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

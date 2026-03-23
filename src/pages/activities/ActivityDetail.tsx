@@ -19,12 +19,18 @@ import { formatDate } from '@/lib/utils'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ActivityForm } from '@/components/activities/ActivityForm'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
+import { RequirePermission } from '@/components/RequirePermission'
 
 export default function ActivityDetail() {
   const { id } = useParams()
   const { activities } = useCrmStore()
   const activity = activities.find((a) => a.id === id)
   const [editOpen, setEditOpen] = useState(false)
+  const { can } = useRbac()
+
+  if (!can('activities', 'visualizar')) return <AccessDenied />
 
   if (!activity)
     return <div className="p-8 text-center text-muted-foreground">Atividade não encontrada.</div>
@@ -63,9 +69,11 @@ export default function ActivityDetail() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            <Edit className="w-4 h-4 mr-2" /> Editar Atividade
-          </Button>
+          <RequirePermission module="activities" action="editar">
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              <Edit className="w-4 h-4 mr-2" /> Editar Atividade
+            </Button>
+          </RequirePermission>
         </div>
       </div>
 

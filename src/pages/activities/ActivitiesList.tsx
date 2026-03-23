@@ -12,13 +12,19 @@ import { Link } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { useRbac } from '@/hooks/use-rbac'
+import { AccessDenied } from '@/components/AccessDenied'
+import { RequirePermission } from '@/components/RequirePermission'
 
 export default function ActivitiesList() {
   const { activities, deleteActivity } = useCrmStore()
   const { toast } = useToast()
+  const { can } = useRbac()
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<Activity | null>(null)
   const [viewMode, setViewMode] = useState('timeline')
+
+  if (!can('activities', 'visualizar')) return <AccessDenied />
 
   const handleEdit = (act: Activity) => {
     setEditData(act)
@@ -79,21 +85,25 @@ export default function ActivitiesList() {
               <Eye className="w-4 h-4 text-muted-foreground" />
             </Button>
           </Link>
-          <Button variant="ghost" size="icon" onClick={() => handleEdit(a)}>
-            <Edit className="w-4 h-4 text-muted-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              if (window.confirm('Excluir esta atividade?')) {
-                deleteActivity(a.id)
-                toast({ title: 'Atividade excluída com sucesso.' })
-              }
-            }}
-          >
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
+          <RequirePermission module="activities" action="editar">
+            <Button variant="ghost" size="icon" onClick={() => handleEdit(a)}>
+              <Edit className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </RequirePermission>
+          <RequirePermission module="activities" action="excluir">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (window.confirm('Excluir esta atividade?')) {
+                  deleteActivity(a.id)
+                  toast({ title: 'Atividade excluída com sucesso.' })
+                }
+              }}
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          </RequirePermission>
         </div>
       ),
     },
@@ -111,14 +121,16 @@ export default function ActivitiesList() {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <Button
-        onClick={() => {
-          setEditData(null)
-          setOpen(true)
-        }}
-      >
-        <Plus className="mr-2 h-4 w-4" /> Nova Atividade
-      </Button>
+      <RequirePermission module="activities" action="criar">
+        <Button
+          onClick={() => {
+            setEditData(null)
+            setOpen(true)
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" /> Nova Atividade
+        </Button>
+      </RequirePermission>
     </div>
   )
 
@@ -178,27 +190,31 @@ export default function ActivitiesList() {
                   <Card className="hover:shadow-md transition-shadow relative">
                     <CardContent className="p-4 sm:p-5">
                       <div className="absolute top-4 right-4 flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => handleEdit(act)}
-                        >
-                          <Edit className="w-3.5 h-3.5 text-muted-foreground" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => {
-                            if (window.confirm('Excluir esta atividade?')) {
-                              deleteActivity(act.id)
-                              toast({ title: 'Atividade excluída com sucesso.' })
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                        </Button>
+                        <RequirePermission module="activities" action="editar">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleEdit(act)}
+                          >
+                            <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                          </Button>
+                        </RequirePermission>
+                        <RequirePermission module="activities" action="excluir">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => {
+                              if (window.confirm('Excluir esta atividade?')) {
+                                deleteActivity(act.id)
+                                toast({ title: 'Atividade excluída com sucesso.' })
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                          </Button>
+                        </RequirePermission>
                       </div>
 
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pr-16">
