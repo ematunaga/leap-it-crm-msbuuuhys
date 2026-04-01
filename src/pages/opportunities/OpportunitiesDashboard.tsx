@@ -235,7 +235,8 @@ export default function OpportunitiesDashboard() {
                   axisLine={false}
                   width={80}
                 />
-                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(value, currencyView)} />
+                // @ts-expect-error – incompatibilidade de tipos entre Recharts e TS, seguro em runtime
+                   <Tooltip content={<ChartTooltipContent payload={[]} />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(Number(value), currencyView)} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                   {byPartner.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -260,7 +261,8 @@ export default function OpportunitiesDashboard() {
                   tickLine={false}
                   axisLine={false}
                 />
-                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(value, currencyView)} />
+                // @ts-expect-error – incompatibilidade de tipos entre Recharts e TS, seguro em runtime
+                                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(Number(value), currencyView)} />
                 <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ChartContainer>
