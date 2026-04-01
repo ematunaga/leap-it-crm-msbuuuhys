@@ -6,13 +6,18 @@ import { AppHeader } from './AppHeader'
 export default function Layout() {
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="flex flex-col min-h-screen bg-muted/20">
-        <AppHeader />
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
-          <Outlet />
-        </main>
-      </SidebarInset>
+      <div className="flex min-h-screen w-full">
+        {/* Menu lateral esquerdo */}
+        <AppSidebar />
+
+        {/* Área principal (topo + conteúdo) */}
+        <SidebarInset className="flex flex-1 flex-col">
+          <AppHeader />
+          <main className="flex-1 overflow-auto p-4">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   )
 }
