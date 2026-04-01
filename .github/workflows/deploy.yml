@@ -6,9 +6,12 @@ on:
       - main
 
 permissions:
-  contents: read        # para o checkout ler o repo
-  pages: write          # para criar o deploy de Pages
-  id-token: write       # exigido pelo actions/deploy-pages@v4
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-deploy:
@@ -23,11 +26,11 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       - run: npm install
       - run: npm run build
