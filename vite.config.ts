@@ -7,6 +7,9 @@ import uidPlugin from './vite-plugin-react-uid'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // >>> ADICIONE ESTA LINHA <<< 
+  base: '/leap-it-crm-msbuuuhys/',
+
   server: {
     host: '::',
     port: 8080,
@@ -24,9 +27,13 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-  plugins: [mode === 'development' ? uidPlugin() : undefined, react()].filter(Boolean),
+  plugins: [mode === 'development' ? uidPlugin() : undefined, react()].filter(
+    Boolean,
+  ),
   define: {
-    'process.env.NODE_ENV': JSON.stringify(mode ?? process.env.NODE_ENV ?? 'production'),
+    'process.env.NODE_ENV': JSON.stringify(
+      mode ?? process.env.NODE_ENV ?? 'production',
+    ),
   },
   resolve: {
     alias: [
@@ -36,8 +43,14 @@ export default defineConfig(({ mode }) => ({
       },
       {
         find: /zod\/v4\/core/,
-        replacement: path.resolve(__dirname, 'node_modules', 'zod', 'v4', 'core'),
-      }
+        replacement: path.resolve(
+          __dirname,
+          'node_modules',
+          'zod',
+          'v4',
+          'core',
+        ),
+      },
     ],
   },
 }))
