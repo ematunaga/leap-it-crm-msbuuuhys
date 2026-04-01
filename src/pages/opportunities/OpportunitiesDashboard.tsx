@@ -13,7 +13,7 @@ import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts'
 import { Briefcase, DollarSign, Target, Plus, Edit, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { formatMoney, formatDate, convertCurrency } from '@/lib/utils'
+import { cn, formatMoney, formatDate, convertCurrency } from '@/lib/utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
@@ -235,7 +235,7 @@ export default function OpportunitiesDashboard() {
                   axisLine={false}
                   width={80}
                 />
-                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} />
+                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(value, currencyView)} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                   {byPartner.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -260,7 +260,7 @@ export default function OpportunitiesDashboard() {
                   tickLine={false}
                   axisLine={false}
                 />
-                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} />
+                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(value, currencyView)} />
                 <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ChartContainer>
@@ -301,9 +301,7 @@ export default function OpportunitiesDashboard() {
                         key={o.id}
                         className={cn(
                           'border-b last:border-0 hover:bg-muted/30 transition-colors',
-                          {
-                            'opacity-50 pointer-events-none': isDeleting === o.id,
-                          },
+                          isDeleting === o.id && 'opacity-50 pointer-events-none',
                         )}
                       >
                         <td className="px-4 py-3 font-medium">
