@@ -262,7 +262,7 @@ export default function OpportunitiesDashboard() {
                   axisLine={false}
                 />
                 // @ts-expect-error – incompatibilidade de tipos entre Recharts e TS, seguro em runtime
-                                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(Number(value), currencyView)} />
+                                <Tooltip content={<ChartTooltipContent payload={[]} />} cursor={{ fill: 'transparent' }} formatter={(value) => formatMoney(Number(value), currencyView)} />
                 <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ChartContainer>
