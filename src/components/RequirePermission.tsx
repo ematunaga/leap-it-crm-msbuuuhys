@@ -1,18 +1,19 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useRbac } from '@/hooks/use-rbac'
+import type { Module, Action } from '@/lib/rbac'
 
 interface Props {
-  module: string
-  action?: string
-  children: ReactNode
+  module: Module
+  action: Action
   fallback?: ReactNode
+  children: ReactNode
 }
 
 export function RequirePermission({
   module,
-  action = 'visualizar',
-  children,
+  action,
   fallback = null,
+  children,
 }: Props) {
   const { can } = useRbac()
 

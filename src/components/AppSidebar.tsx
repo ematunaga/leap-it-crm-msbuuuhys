@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useRbac } from '@/hooks/use-rbac'
+import type { Module } from '@/lib/rbac'
 import {
   Sidebar,
   SidebarContent,
@@ -29,41 +30,53 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 
-const navigation = [
+interface NavItem {
+  title: string
+  url: string
+  icon: React.ElementType
+  module: Module
+}
+
+interface NavGroup {
+  title: string
+  items: NavItem[]
+}
+
+const navigation: NavGroup[] = [
   {
     title: 'Comercial',
     items: [
-      { title: 'Dashboard', url: '/', icon: LayoutDashboard, module: 'dashboard' },
-      { title: 'Contas', url: '/contas', icon: Building2, module: 'accounts' },
-      { title: 'Filiais', url: '/filiais', icon: Store, module: 'accounts' },
-      { title: 'Contatos', url: '/contatos', icon: Users, module: 'contacts' },
-      { title: 'Oportunidades', url: '/oportunidades', icon: Briefcase, module: 'opportunities' },
-      { title: 'Pipeline', url: '/pipeline', icon: GitPullRequest, module: 'opportunities' },
-      { title: 'Atividades', url: '/atividades', icon: Calendar, module: 'activities' },
-      { title: 'Propostas', url: '/propostas', icon: FileText, module: 'proposals' },
+      { title: 'Dashboard',      url: '/',             icon: LayoutDashboard, module: 'dashboard'      },
+      { title: 'Contas',         url: '/contas',       icon: Building2,       module: 'accounts'       },
+      { title: 'Filiais',        url: '/filiais',      icon: Store,           module: 'accounts'       },
+      { title: 'Contatos',       url: '/contatos',     icon: Users,           module: 'contacts'       },
+      { title: 'Oportunidades',  url: '/oportunidades',icon: Briefcase,       module: 'opportunities'  },
+      { title: 'Pipeline',       url: '/pipeline',     icon: GitPullRequest,  module: 'opportunities'  },
+      { title: 'Atividades',     url: '/atividades',   icon: Calendar,        module: 'activities'     },
+      { title: 'Propostas',      url: '/propostas',    icon: FileText,        module: 'proposals'      },
     ],
   },
   {
     title: 'Inteligência',
     items: [
-      { title: 'Concorrentes', url: '/concorrentes', icon: Target, module: 'competitors' },
-      { title: 'Relatórios', url: '/relatorios', icon: BarChart2, module: 'reports' },
+      { title: 'Concorrentes',   url: '/concorrentes', icon: Target,          module: 'competitors'    },
+      { title: 'Relatórios',     url: '/relatorios',   icon: BarChart2,       module: 'reports'        },
     ],
   },
   {
     title: 'Operação',
     items: [
-      { title: 'Leads', url: '/leads', icon: Filter, module: 'leads' },
-      { title: 'Campanhas', url: '/campanhas', icon: Megaphone, module: 'campaigns' },
-      { title: 'Contratos', url: '/contratos', icon: FileSignature, module: 'contracts' },
+      { title: 'Leads',          url: '/leads',        icon: Filter,          module: 'leads'          },
+      { title: 'Campanhas',      url: '/campanhas',    icon: Megaphone,       module: 'campaigns'      },
+      { title: 'Contratos',      url: '/contratos',    icon: FileSignature,   module: 'contracts'      },
     ],
   },
   {
     title: 'Administração',
     items: [
-      { title: 'Usuários', url: '/usuarios', icon: Users, module: 'settings' },
-      { title: 'Configurações', url: '/configuracoes', icon: Settings, module: 'settings' },
-      { title: 'Auditoria', url: '/auditoria', icon: ShieldCheck, module: 'settings' },
+      { title: 'Usuários',       url: '/usuarios',     icon: Users,           module: 'settings'       },
+      { title: 'Configurações',  url: '/configuracoes',icon: Settings,        module: 'settings'       },
+      { title: 'Auditoria',      url: '/auditoria',    icon: ShieldCheck,     module: 'settings'       },
     ],
   },
 ]
@@ -79,15 +92,20 @@ export function AppSidebar() {
           <div className="bg-primary rounded-md p-1">
             <Target className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="truncate group-data-[collapsible=icon]:hidden">LEAP IT CRM</span>
+          <span className="truncate group-data-[collapsible=icon]:hidden">
+            LEAP IT CRM
+          </span>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         {navigation.map((group) => {
-          // Filter items based on permissions
-          const visibleItems = group.items.filter((item) => can(item.module, 'visualizar'))
+          // Filtra itens sem permissão de visualizar
+          const visibleItems = group.items.filter((item) =>
+            can(item.module, 'visualizar'),
+          )
 
-          // Hide group if no items are visible
+          // Esconde o grupo inteiro se não há itens visíveis
           if (visibleItems.length === 0) return null
 
           return (

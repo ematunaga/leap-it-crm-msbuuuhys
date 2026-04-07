@@ -1,15 +1,15 @@
-import { ShieldAlert } from 'lucide-react'
+import { ShieldX } from 'lucide-react'
 
 export function AccessDenied() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in h-full">
-      <div className="bg-destructive/10 p-5 rounded-full mb-4">
-        <ShieldAlert className="w-12 h-12 text-destructive" />
-      </div>
-      <h2 className="text-2xl font-bold tracking-tight mb-2">Acesso Restrito</h2>
-      <p className="text-muted-foreground max-w-md">
-        Seu perfil atual não possui permissões suficientes para visualizar esta área do sistema. Por
-        favor, contate o administrador caso precise de acesso.
+    <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground py-24">
+      <ShieldX className="w-12 h-12 text-destructive" />
+      <h2 className="text-xl font-semibold text-foreground">
+        Acesso Negado
+      </h2>
+      <p className="text-sm text-center max-w-sm">
+        Você não tem permissão para acessar esta área. Entre em contato
+        com o administrador do sistema.
       </p>
     </div>
   )
