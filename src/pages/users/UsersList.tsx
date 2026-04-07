@@ -15,14 +15,13 @@ import { AccessDenied } from '@/components/AccessDenied'
 export default function UsersList() {
   const { users, profiles, deleteUser, syncWithPricingApp } = useCrmStore()
   const { toast } = useToast()
-  const { permissions, profile } = useRbac()
+  const { can } = useRbac() // ✅ novo hook
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<AppUser | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
 
-  const canManageUsers = profile?.type === 'sistema' || !!permissions.settings?.gerenciar_usuarios
-
-  if (!canManageUsers) return <AccessDenied />
+  // ✅ usa can() em vez de permissions.settings
+  if (!can('settings', 'gerenciar_usuarios')) return <AccessDenied />
 
   const handleEdit = (u: AppUser) => {
     setEditData(u)
@@ -90,7 +89,9 @@ export default function UsersList() {
       key: 'origin',
       label: 'Origem',
       render: (val: string) => (
-        <span className="capitalize">{val === 'central_auth' ? 'Base Central' : val || 'CRM'}</span>
+        <span className="capitalize">
+          {val === 'central_auth' ? 'Base Central' : val || 'CRM'}
+        </span>
       ),
     },
     {
@@ -112,7 +113,9 @@ export default function UsersList() {
         <Badge
           variant="outline"
           className={
-            val === 'ativo' ? 'border-emerald-500 text-emerald-600' : 'text-muted-foreground'
+            val === 'ativo'
+              ? 'border-emerald-500 text-emerald-600'
+              : 'text-muted-foreground'
           }
         >
           {val}
@@ -138,15 +141,10 @@ export default function UsersList() {
   const actions = (
     <div className="flex gap-2">
       <Button variant="outline" onClick={handleSyncAll} disabled={isSyncing}>
-        <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} /> Sincronizar
-        Agora
+        <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+        Sincronizar Agora
       </Button>
-      <Button
-        onClick={() => {
-          setEditData(null)
-          setOpen(true)
-        }}
-      >
+      <Button onClick={() => { setEditData(null); setOpen(true) }}>
         <Plus className="w-4 h-4 mr-2" /> Novo Usuário
       </Button>
     </div>
