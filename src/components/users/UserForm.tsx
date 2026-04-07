@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 import useCrmStore from '@/stores/useCrmStore'
 import { useToast } from '@/hooks/use-toast'
+import { ROLE_LABELS } from '@/lib/rbac'
+import type { Role } from '@/lib/rbac'
 
 type UserFormValues = {
   id?: string
@@ -24,7 +26,7 @@ type UserFormValues = {
   avatarUrl?: string
   status: 'ativo' | 'inativo'
   origin: string
-  profileId: string
+  role: Role
 }
 
 type UserFormProps = {
@@ -33,7 +35,7 @@ type UserFormProps = {
 }
 
 export function UserForm({ initialData, onSuccess }: UserFormProps) {
-  const { addUser, updateUser, profiles } = useCrmStore()
+  const { addUser, updateUser } = useCrmStore()
   const { toast } = useToast()
   const [avatarPreview, setAvatarPreview] = useState(
     initialData?.avatarUrl || '',
@@ -44,7 +46,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
       defaultValues: {
         status: 'ativo',
         origin: 'crm',
-        profileId: '',
+        role: 'leitura',
         ...initialData,
       },
     })
@@ -54,14 +56,14 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
       reset({
         status: 'ativo',
         origin: 'crm',
-        profileId: '',
+        role: 'leitura',
         ...initialData,
       })
       setAvatarPreview(initialData.avatarUrl || '')
     }
   }, [initialData, reset])
 
-  const profileId = watch('profileId')
+  const role = watch('role')
   const status = watch('status')
   const name = watch('name')
 
@@ -70,44 +72,31 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
     if (!file) return
 
     if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: 'A imagem deve ter no máximo 2MB',
-        variant: 'destructive',
-      })
+      toast({ title: 'A imagem deve ter no máximo 2MB', variant: 'destructive' })
       return
     }
 
     const reader = new FileReader()
-    reader.onloadend = () => {
-      setAvatarPreview(reader.result as string)
-    }
+    reader.onloadend = () => setAvatarPreview(reader.result as string)
     reader.readAsDataURL(file)
   }
 
   const onSubmit = (data: UserFormValues) => {
-    const prof = profiles.find((p: any) => p.id === data.profileId)
-
     const payload = {
       ...data,
       avatarUrl: avatarPreview,
-      role: prof ? prof.name : 'Usuário',
       updatedAt: new Date().toISOString(),
     }
 
     if (initialData?.id) {
       updateUser(initialData.id, payload)
-      toast({
-        title:
-          'Usuário atualizado. Sincronização disparada para Precificação!',
-      })
+      toast({ title: 'Usuário atualizado com sucesso!' })
     } else {
       addUser({
         ...payload,
         createdAt: new Date().toISOString(),
       })
-      toast({
-        title: 'Usuário criado e acesso liberado em ambas as plataformas!',
-      })
+      toast({ title: 'Usuário criado com sucesso!' })
     }
 
     onSuccess()
@@ -115,7 +104,8 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Avatar / Foto de Perfil */}
+
+      {/* Avatar */}
       <div className="flex flex-col gap-2 mb-2">
         <Label>Foto de Perfil</Label>
         <div className="flex items-center gap-4">
@@ -123,7 +113,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
             {avatarPreview ? (
               <AvatarImage
                 src={avatarPreview}
-                alt={name || 'Avatar do usuário'}
+                alt={name || 'Avatar'}
                 className="object-cover"
               />
             ) : (
@@ -156,7 +146,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
         <Input
           type="email"
           {...register('email', { required: true })}
-          placeholder="joao@leapit.com"
+          placeholder="joao@leapit.com.br"
         />
       </div>
 
@@ -170,7 +160,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
             placeholder="Senha segura"
           />
           <p className="text-[10px] text-muted-foreground mt-1">
-            As credenciais de acesso serão criptografadas na base de dados.
+            As credenciais serão criptografadas na base de dados.
           </p>
         </div>
       )}
@@ -180,18 +170,20 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
         <div className="space-y-1">
           <Label>Perfil de Acesso *</Label>
           <Select
-            value={profileId}
-            onValueChange={(v) => setValue('profileId', v as any)}
+            value={role}
+            onValueChange={(v) => setValue('role', v as Role)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione" />
+              <SelectValue placeholder="Selecione o perfil" />
             </SelectTrigger>
             <SelectContent>
-              {profiles.map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
+              {(Object.entries(ROLE_LABELS) as [Role, string][]).map(
+                ([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ),
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -200,7 +192,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           <Label>Status</Label>
           <Select
             value={status}
-            onValueChange={(v) => setValue('status', v as any)}
+            onValueChange={(v) => setValue('status', v as 'ativo' | 'inativo')}
           >
             <SelectTrigger>
               <SelectValue />
@@ -212,10 +204,6 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           </Select>
         </div>
       </div>
-
-      <p className="text-[10px] text-muted-foreground">
-        As credenciais de acesso serão criptografadas na base de dados.
-      </p>
 
       {/* Botões */}
       <div className="flex justify-end pt-4">
