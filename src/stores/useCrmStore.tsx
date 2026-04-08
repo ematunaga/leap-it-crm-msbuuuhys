@@ -15,6 +15,18 @@ import {
 import { toCamel, toSnake, uuidv4 } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 
+type TableName =
+  | 'accounts'
+  | 'contacts'
+  | 'opportunities'
+  | 'activities'
+  | 'leads'
+  | 'competitors'
+  | 'contracts'
+  | 'opportunity_stakeholders'
+  | 'access_profiles'
+  | 'app_users'
+
 interface CrmStore {
   accounts: Account[]
   contacts: Contact[]
@@ -212,7 +224,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const addEntity = async <T extends { id: string }>(
-    table: string,
+    table: TableName,
     item: Omit<T, 'id'>,
     setFn: React.Dispatch<React.SetStateAction<T[]>>,
   ) => {
@@ -234,7 +246,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const updateEntity = async <T extends { id: string }>(
-    table: string,
+    table: TableName,
     id: string,
     updates: Partial<T>,
     setFn: React.Dispatch<React.SetStateAction<T[]>>,
@@ -264,7 +276,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   }
 
   const deleteEntity = async <T extends { id: string }>(
-    table: string,
+    table: TableName,
     id: string,
     setFn: React.Dispatch<React.SetStateAction<T[]>>,
   ) => {
