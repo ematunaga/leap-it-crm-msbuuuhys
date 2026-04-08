@@ -304,7 +304,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
 
   const restoreBackup = async (backupData: any) => {
     try {
-      const restoreTable = async (table: string, items: any[]) => {
+      const restoreTable = async (table: TableName, items: any[]) => {
         if (!items || items.length === 0) return
         const payload = items.map(toSnake)
         const { error } = await supabase.from(table).upsert(payload)
