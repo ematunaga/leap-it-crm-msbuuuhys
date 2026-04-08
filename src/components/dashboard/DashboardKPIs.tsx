@@ -13,7 +13,7 @@ export function DashboardKPIs() {
   const convertedLeads = leads.filter((l) => l.status === 'Convertido').length
   const winRate = leads.length ? Math.round((convertedLeads / leads.length) * 100) : 0
   const forecast = opps
-    .filter((o) => o.stage === 'Negociação')
+    .filter((o) => o.stage === 'negociacao')
     .reduce(
       (sum, o) => sum + convertCurrency(o.value, o.currency || 'BRL', currencyView, ptaxRate),
       0,

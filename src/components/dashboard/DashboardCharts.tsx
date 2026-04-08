@@ -21,7 +21,7 @@ export function DashboardCharts() {
   const { opps, currencyView, ptaxRate } = useCrmStore()
 
   const pipelineData = useMemo(() => {
-    const stages = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação']
+    const stages = ['prospeccao', 'qualificacao', 'proposta', 'negociacao']
     return stages.map((stage) => ({
       name: stage,
       valor: opps
@@ -55,7 +55,21 @@ export function DashboardCharts() {
             className="h-[300px]"
           >
             <BarChart data={pipelineData}>
-              <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+              <XAxis
+                dataKey="name"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(val) => {
+                  const labels: Record<string, string> = {
+                   prospeccao: 'Prospecção',
+                    qualificacao: 'Qualificação',
+                    proposta: 'Proposta',
+                    negociacao: 'Negociação',
+                  }
+                  return labels[val] ?? val
+                }}
+              />
               <YAxis
                 fontSize={12}
                 tickFormatter={(val) => `${currencyView === 'USD' ? 'US$' : 'R$'}${val / 1000}k`}
