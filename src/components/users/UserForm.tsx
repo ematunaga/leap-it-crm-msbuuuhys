@@ -30,7 +30,11 @@ type UserFormValues = {
 }
 
 type UserFormProps = {
-  initialData?: Partial<UserFormValues>
+  initialData?: Partial<Omit<UserFormValues, 'status' | 'role'>> & {
+    status?: string
+    role?: string
+    [key: string]: any
+  }
   onSuccess: () => void
 }
 
@@ -42,26 +46,30 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
   )
 
   const { register, handleSubmit, reset, setValue, watch } =
-    useForm<UserFormValues>({
-      defaultValues: {
-        status: 'ativo',
-        origin: 'crm',
-        role: 'leitura',
-        ...initialData,
-      },
-    })
+  useForm<UserFormValues>({
+    defaultValues: {
+      status: (initialData?.status as 'ativo' | 'inativo') ?? 'ativo',
+      origin: initialData?.origin ?? 'crm',
+      role: (initialData?.role as Role) ?? 'leitura',
+      name: initialData?.name ?? '',
+      email: initialData?.email ?? '',
+      avatarUrl: initialData?.avatarUrl ?? '',
+    },
+  })
 
   useEffect(() => {
-    if (initialData) {
-      reset({
-        status: 'ativo',
-        origin: 'crm',
-        role: 'leitura',
-        ...initialData,
-      })
-      setAvatarPreview(initialData.avatarUrl || '')
-    }
-  }, [initialData, reset])
+  if (initialData) {
+    reset({
+      status: (initialData.status as 'ativo' | 'inativo') ?? 'ativo',
+      origin: initialData.origin ?? 'crm',
+      role: (initialData.role as Role) ?? 'leitura',
+      name: initialData.name ?? '',
+      email: initialData.email ?? '',
+      avatarUrl: initialData.avatarUrl ?? '',
+    })
+    setAvatarPreview(initialData.avatarUrl ?? '')
+  }
+}, [initialData, reset])
 
   const role = watch('role')
   const status = watch('status')
@@ -85,6 +93,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
     const payload = {
       ...data,
       avatarUrl: avatarPreview,
+      syncStatus: 'pending' as const,
       updatedAt: new Date().toISOString(),
     }
 

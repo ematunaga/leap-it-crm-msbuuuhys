@@ -76,6 +76,7 @@ export function DashboardCharts() {
                 tickLine={false}
                 axisLine={false}
               />
+              {/* @ts-expect-error – Recharts injeta payload em runtime */}
               <Tooltip content={<ChartTooltipContent />} cursor={{ fill: 'transparent' }} />
               <Bar dataKey="valor" fill="var(--color-valor)" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -104,6 +105,7 @@ export function DashboardCharts() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
+              {/* @ts-expect-error – Recharts injeta payload em runtime */}
               <Tooltip content={<ChartTooltipContent />} />
             </PieChart>
           </ChartContainer>
