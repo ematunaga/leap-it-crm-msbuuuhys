@@ -2,36 +2,53 @@ import { Link } from 'react-router-dom'
 import { Opportunity } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { formatMoney, formatDate, convertCurrency } from '@/lib/utils'
-import { Clock, AlertCircle } from 'lucide-react'
+import { Clock, AlertCircle, Building2 } from 'lucide-react'
 import useCrmStore from '@/stores/useCrmStore'
 
 export function KanbanCard({ opp }: { opp: Opportunity }) {
-  const { currencyView, ptaxRate } = useCrmStore()
+  const { currencyView, ptaxRate, accounts } = useCrmStore()
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('oppId', opp.id)
   }
 
   const bgColors = {
-    fria: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
-    morna: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
+    fria:   'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
+    morna:  'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
     quente: 'bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800',
   }
 
   const convertedVal = convertCurrency(opp.value, opp.currency || 'BRL', currencyView, ptaxRate)
 
+  // Busca o nome da conta pelo accountId
+  const accountName =
+    opp.accountName ||
+    accounts.find((a) => a.id === opp.accountId)?.name ||
+    null
+
   return (
     <div
       draggable
       onDragStart={handleDragStart}
-      className={`p-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing shadow-subtle hover:shadow-elevation transition-all ${bgColors[opp.temperature] || 'bg-background'}`}
+      className={`p-4 mb-3 rounded-xl border cursor-grab active:cursor-grabbing shadow-subtle hover:shadow-elevation transition-all ${bgColors[opp.temperature as keyof typeof bgColors] || 'bg-background'}`}
     >
+      {/* Título da oportunidade */}
       <Link
         to={`/oportunidades/${opp.id}`}
-        className="block font-semibold mb-1 hover:underline truncate"
+        className="block font-semibold mb-0.5 hover:underline truncate"
       >
         {opp.title}
       </Link>
+
+      {/* Nome da conta */}
+      {accountName && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2 truncate">
+          <Building2 className="w-3 h-3 shrink-0" />
+          <span className="truncate">{accountName}</span>
+        </div>
+      )}
+
+      {/* Valor */}
       <div className="font-mono font-medium text-sm mb-3 flex flex-col">
         <span>{formatMoney(convertedVal, currencyView)}</span>
         {opp.currency && opp.currency !== currencyView && (
@@ -41,12 +58,15 @@ export function KanbanCard({ opp }: { opp: Opportunity }) {
         )}
       </div>
 
+      {/* Rodapé */}
       <div className="text-xs text-muted-foreground space-y-1.5">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" /> Próx. Passo:
           </span>
-          <span className="font-medium text-foreground truncate max-w-[100px]">{opp.nextStep}</span>
+          <span className="font-medium text-foreground truncate max-w-[100px]">
+            {opp.nextStep || '—'}
+          </span>
         </div>
         <div className="flex justify-between items-center mt-2 pt-2 border-t border-black/5 dark:border-white/5">
           <span>{formatDate(opp.nextStepDate)}</span>
