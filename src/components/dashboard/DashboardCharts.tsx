@@ -34,7 +34,7 @@ export function DashboardCharts() {
   }, [opps, currencyView, ptaxRate])
 
   const temperatureData = useMemo(() => {
-    const counts = { Fria: 0, Morna: 0, Quente: 0 }
+    const counts = { fria: 0, morna: 0, quente: 0 }
     opps.forEach((o) => {
       if (counts[o.temperature as keyof typeof counts] !== undefined) {
         counts[o.temperature as keyof typeof counts]++
