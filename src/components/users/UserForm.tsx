@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import useCrmStore from '@/stores/useCrmStore'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase/client'
 import { ROLE_LABELS } from '@/lib/rbac'
 import type { Role } from '@/lib/rbac'
 
@@ -24,7 +25,6 @@ type UserFormValues = {
   status: 'ativo' | 'inativo'
   origin: string
   role: Role
-  syncStatus: string
 }
 
 type UserFormProps = {
@@ -33,11 +33,12 @@ type UserFormProps = {
 }
 
 export function UserForm({ initialData, onSuccess }: UserFormProps) {
-  const { addUser, updateUser } = useCrmStore()
+  const { updateUser, addUser } = useCrmStore()
   const { toast } = useToast()
   const [avatarPreview, setAvatarPreview] = useState<string>(
     initialData?.avatarUrl ?? '',
   )
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { register, handleSubmit, reset, setValue, watch } =
     useForm<UserFormValues>({
@@ -48,7 +49,6 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
         status: (initialData?.status as 'ativo' | 'inativo') ?? 'ativo',
         origin: initialData?.origin ?? 'crm',
         role: (initialData?.role as Role) ?? 'leitura',
-        syncStatus: initialData?.syncStatus ?? 'pending',
       },
     })
 
@@ -61,7 +61,6 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
         status: (initialData.status as 'ativo' | 'inativo') ?? 'ativo',
         origin: initialData.origin ?? 'crm',
         role: (initialData.role as Role) ?? 'leitura',
-        syncStatus: initialData.syncStatus ?? 'pending',
       })
       setAvatarPreview(initialData.avatarUrl ?? '')
     }
@@ -75,7 +74,10 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 2 * 1024 * 1024) {
-      toast({ title: 'A imagem deve ter no máximo 2MB', variant: 'destructive' })
+      toast({
+        title: 'A imagem deve ter no máximo 2MB',
+        variant: 'destructive',
+      })
       return
     }
     const reader = new FileReader()
@@ -83,33 +85,80 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
     reader.readAsDataURL(file)
   }
 
-const onSubmit = async (data: UserFormValues) => {
-  // Remove password do payload — não existe na tabela app_users
-  const { password, ...rest } = data
+  const onSubmit = async (data: UserFormValues) => {
+    setIsSubmitting(true)
+    try {
+      if (initialData?.id) {
+        // ── EDIÇÃO ──
+        const { password, ...rest } = data
 
-  const payload = {
-    ...rest,
-    avatarUrl: avatarPreview,
-    syncStatus: 'pending',
-    updatedAt: new Date().toISOString(),
-  }
+        await updateUser(initialData.id, {
+          ...rest,
+          avatarUrl: avatarPreview,
+          syncStatus: 'pending',
+          updatedAt: new Date().toISOString(),
+        })
 
-  try {
-    if (initialData?.id) {
-      await updateUser(initialData.id, payload)
-      toast({ title: 'Usuário atualizado com sucesso!' })
-    } else {
-      await addUser({
-        ...payload,
-        createdAt: new Date().toISOString(),
+        if (password && password.length >= 6) {
+          await supabase.auth.updateUser({ password })
+        }
+
+        toast({ title: 'Usuário atualizado com sucesso!' })
+        onSuccess()
+      } else {
+        // ── CRIAÇÃO via Edge Function ──
+        if (!data.password || data.password.length < 6) {
+          toast({
+            title: 'Senha obrigatória',
+            description: 'A senha deve ter no mínimo 6 caracteres.',
+            variant: 'destructive',
+          })
+          setIsSubmitting(false)
+          return
+        }
+
+        const { data: result, error } = await supabase.functions.invoke(
+          'create-user',
+          {
+            body: {
+              name: data.name,
+              email: data.email,
+              password: data.password,
+              role: data.role,
+              status: data.status,
+              origin: data.origin,
+              avatarUrl: avatarPreview || null,
+              syncStatus: 'pending',
+            },
+          },
+        )
+
+        if (error || result?.error) {
+          toast({
+            title: 'Erro ao criar usuário',
+            description: error?.message ?? result?.error,
+            variant: 'destructive',
+          })
+          setIsSubmitting(false)
+          return
+        }
+
+        // Recarrega a lista de usuários após criação
+        await addUser({} as any)
+
+        toast({ title: 'Usuário criado com sucesso! Acesso liberado no CRM.' })
+        onSuccess()
+      }
+    } catch (e: any) {
+      toast({
+        title: 'Erro inesperado',
+        description: e?.message ?? 'Tente novamente.',
+        variant: 'destructive',
       })
-      toast({ title: 'Usuário criado com sucesso!' })
+    } finally {
+      setIsSubmitting(false)
     }
-    onSuccess()
-  } catch {
-    // erro já tratado pelo store
   }
-}
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -156,25 +205,32 @@ const onSubmit = async (data: UserFormValues) => {
           type="email"
           {...register('email', { required: true })}
           placeholder="joao@leapit.com.br"
+          disabled={!!initialData?.id}
         />
       </div>
 
-      {/* Senha apenas na criação */}
-      {!initialData?.id && (
-        <div className="space-y-1">
-          <Label>Senha Inicial *</Label>
-          <Input
-            type="password"
-            {...register('password')}
-            placeholder="Senha segura"
-          />
-          <p className="text-[10px] text-muted-foreground mt-1">
-            As credenciais serão criptografadas na base de dados.
-          </p>
-        </div>
-      )}
+      {/* Senha */}
+      <div className="space-y-1">
+        <Label>
+          {initialData?.id
+            ? 'Nova Senha (deixe em branco para manter)'
+            : 'Senha Inicial *'}
+        </Label>
+        <Input
+          type="password"
+          {...register('password')}
+          placeholder={
+            initialData?.id
+              ? 'Digite para alterar a senha'
+              : 'Mínimo 6 caracteres'
+          }
+        />
+        <p className="text-[10px] text-muted-foreground mt-1">
+          As credenciais são criptografadas no Supabase Auth.
+        </p>
+      </div>
 
-      {/* Perfil de acesso e Status */}
+      {/* Perfil e Status */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <Label>Perfil de Acesso *</Label>
@@ -201,7 +257,9 @@ const onSubmit = async (data: UserFormValues) => {
           <Label>Status</Label>
           <Select
             value={status}
-            onValueChange={(v) => setValue('status', v as 'ativo' | 'inativo')}
+            onValueChange={(v) =>
+              setValue('status', v as 'ativo' | 'inativo')
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -224,7 +282,9 @@ const onSubmit = async (data: UserFormValues) => {
         >
           Cancelar
         </Button>
-        <Button type="submit">Salvar Usuário</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Salvando...' : 'Salvar Usuário'}
+        </Button>
       </div>
     </form>
   )
