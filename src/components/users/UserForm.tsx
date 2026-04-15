@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -12,14 +11,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-
 import useCrmStore from '@/stores/useCrmStore'
 import { useToast } from '@/hooks/use-toast'
 import { ROLE_LABELS } from '@/lib/rbac'
 import type { Role } from '@/lib/rbac'
 
 type UserFormValues = {
-  id?: string
   name: string
   email: string
   password?: string
@@ -27,49 +24,48 @@ type UserFormValues = {
   status: 'ativo' | 'inativo'
   origin: string
   role: Role
+  syncStatus: string
 }
 
 type UserFormProps = {
-  initialData?: Partial<Omit<UserFormValues, 'status' | 'role'>> & {
-    status?: string
-    role?: string
-    [key: string]: any
-  }
+  initialData?: any
   onSuccess: () => void
 }
 
 export function UserForm({ initialData, onSuccess }: UserFormProps) {
   const { addUser, updateUser } = useCrmStore()
   const { toast } = useToast()
-  const [avatarPreview, setAvatarPreview] = useState(
-    initialData?.avatarUrl || '',
+  const [avatarPreview, setAvatarPreview] = useState<string>(
+    initialData?.avatarUrl ?? '',
   )
 
   const { register, handleSubmit, reset, setValue, watch } =
-  useForm<UserFormValues>({
-    defaultValues: {
-      status: (initialData?.status as 'ativo' | 'inativo') ?? 'ativo',
-      origin: initialData?.origin ?? 'crm',
-      role: (initialData?.role as Role) ?? 'leitura',
-      name: initialData?.name ?? '',
-      email: initialData?.email ?? '',
-      avatarUrl: initialData?.avatarUrl ?? '',
-    },
-  })
+    useForm<UserFormValues>({
+      defaultValues: {
+        name: initialData?.name ?? '',
+        email: initialData?.email ?? '',
+        avatarUrl: initialData?.avatarUrl ?? '',
+        status: (initialData?.status as 'ativo' | 'inativo') ?? 'ativo',
+        origin: initialData?.origin ?? 'crm',
+        role: (initialData?.role as Role) ?? 'leitura',
+        syncStatus: initialData?.syncStatus ?? 'pending',
+      },
+    })
 
   useEffect(() => {
-  if (initialData) {
-    reset({
-      status: (initialData.status as 'ativo' | 'inativo') ?? 'ativo',
-      origin: initialData.origin ?? 'crm',
-      role: (initialData.role as Role) ?? 'leitura',
-      name: initialData.name ?? '',
-      email: initialData.email ?? '',
-      avatarUrl: initialData.avatarUrl ?? '',
-    })
-    setAvatarPreview(initialData.avatarUrl ?? '')
-  }
-}, [initialData, reset])
+    if (initialData) {
+      reset({
+        name: initialData.name ?? '',
+        email: initialData.email ?? '',
+        avatarUrl: initialData.avatarUrl ?? '',
+        status: (initialData.status as 'ativo' | 'inativo') ?? 'ativo',
+        origin: initialData.origin ?? 'crm',
+        role: (initialData.role as Role) ?? 'leitura',
+        syncStatus: initialData.syncStatus ?? 'pending',
+      })
+      setAvatarPreview(initialData.avatarUrl ?? '')
+    }
+  }, [initialData, reset])
 
   const role = watch('role')
   const status = watch('status')
@@ -78,37 +74,38 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     if (file.size > 2 * 1024 * 1024) {
       toast({ title: 'A imagem deve ter no máximo 2MB', variant: 'destructive' })
       return
     }
-
     const reader = new FileReader()
     reader.onloadend = () => setAvatarPreview(reader.result as string)
     reader.readAsDataURL(file)
   }
 
-  const onSubmit = (data: UserFormValues) => {
+  const onSubmit = async (data: UserFormValues) => {
     const payload = {
       ...data,
       avatarUrl: avatarPreview,
-      syncStatus: 'pending' as const,
+      syncStatus: 'pending',
       updatedAt: new Date().toISOString(),
     }
 
-    if (initialData?.id) {
-      updateUser(initialData.id, payload)
-      toast({ title: 'Usuário atualizado com sucesso!' })
-    } else {
-      addUser({
-        ...payload,
-        createdAt: new Date().toISOString(),
-      })
-      toast({ title: 'Usuário criado com sucesso!' })
+    try {
+      if (initialData?.id) {
+        await updateUser(initialData.id, payload)
+        toast({ title: 'Usuário atualizado com sucesso!' })
+      } else {
+        await addUser({
+          ...payload,
+          createdAt: new Date().toISOString(),
+        })
+        toast({ title: 'Usuário criado com sucesso!' })
+      }
+      onSuccess()
+    } catch {
+      // erro já tratado pelo store
     }
-
-    onSuccess()
   }
 
   return (
@@ -165,7 +162,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           <Label>Senha Inicial *</Label>
           <Input
             type="password"
-            {...register('password', { required: true })}
+            {...register('password')}
             placeholder="Senha segura"
           />
           <p className="text-[10px] text-muted-foreground mt-1">
@@ -174,7 +171,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
         </div>
       )}
 
-      {/* Perfil de acesso / Status */}
+      {/* Perfil de acesso e Status */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <Label>Perfil de Acesso *</Label>
