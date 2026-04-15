@@ -457,27 +457,17 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     updateEntity('access_profiles', id, updates, setProfiles)
 
   const addUser = async (user: Omit<AppUser, 'id'> & { id?: string }) => {
-    const id = user.id || uuidv4()
-    const newUser = {
-      ...user,
-      id,
-      createdAt: new Date().toISOString(),
-      syncStatus: 'pending',
-    } as AppUser
-    setUsers((prev) => [newUser, ...prev])
+  // A criação real é feita pela Edge Function create-user
+  // Aqui só recarregamos a lista do banco após a inserção
+  const { data, error } = await supabase
+    .from('app_users')
+    .select('*')
+    .order('created_at', { ascending: false })
 
-    const { error } = await supabase.from('app_users').insert(toSnake(newUser))
-    if (error) {
-      console.error('Error adding user:', error)
-      toast({
-        title: 'Erro de Sincronização',
-        description: 'Não foi possível salvar o usuário.',
-        variant: 'destructive',
-      })
-      setUsers((prev) => prev.filter((u) => u.id !== id))
-      throw error
-    }
+  if (!error && data) {
+    setUsers(toCamel(data))
   }
+}
 
   const updateUser = async (id: string, updates: Partial<AppUser>) => {
     await updateEntity('app_users', id, { ...updates, syncStatus: 'pending' }, setUsers)
