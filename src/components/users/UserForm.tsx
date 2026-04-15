@@ -83,30 +83,33 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
     reader.readAsDataURL(file)
   }
 
-  const onSubmit = async (data: UserFormValues) => {
-    const payload = {
-      ...data,
-      avatarUrl: avatarPreview,
-      syncStatus: 'pending',
-      updatedAt: new Date().toISOString(),
-    }
+const onSubmit = async (data: UserFormValues) => {
+  // Remove password do payload — não existe na tabela app_users
+  const { password, ...rest } = data
 
-    try {
-      if (initialData?.id) {
-        await updateUser(initialData.id, payload)
-        toast({ title: 'Usuário atualizado com sucesso!' })
-      } else {
-        await addUser({
-          ...payload,
-          createdAt: new Date().toISOString(),
-        })
-        toast({ title: 'Usuário criado com sucesso!' })
-      }
-      onSuccess()
-    } catch {
-      // erro já tratado pelo store
-    }
+  const payload = {
+    ...rest,
+    avatarUrl: avatarPreview,
+    syncStatus: 'pending',
+    updatedAt: new Date().toISOString(),
   }
+
+  try {
+    if (initialData?.id) {
+      await updateUser(initialData.id, payload)
+      toast({ title: 'Usuário atualizado com sucesso!' })
+    } else {
+      await addUser({
+        ...payload,
+        createdAt: new Date().toISOString(),
+      })
+      toast({ title: 'Usuário criado com sucesso!' })
+    }
+    onSuccess()
+  } catch {
+    // erro já tratado pelo store
+  }
+}
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
