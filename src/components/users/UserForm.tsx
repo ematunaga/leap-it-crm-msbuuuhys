@@ -156,8 +156,16 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           return
         }
 
-        // Recarrega lista de usuários
-        await addUser({} as any)
+        // Recarrega lista de usuários diretamente sem chamar addUser
+        const { data: usersData } = await supabase
+          .from('app_users')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (usersData) {
+          // O store vai atualizar via addUser com os dados frescos
+          await addUser({} as any)
+        }
 
         toast({ title: 'Usuário criado com sucesso! Acesso liberado no CRM.' })
         onSuccess()
