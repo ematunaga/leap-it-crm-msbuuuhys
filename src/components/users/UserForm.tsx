@@ -117,6 +117,20 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           return
         }
 
+        // Pega o token do usuário logado para autorizar a Edge Function
+        const { data: sessionData } = await supabase.auth.getSession()
+        const accessToken = sessionData.session?.access_token
+
+        if (!accessToken) {
+          toast({
+            title: 'Sessão expirada',
+            description: 'Faça login novamente para continuar.',
+            variant: 'destructive',
+          })
+          setIsSubmitting(false)
+          return
+        }
+
         const { data: result, error } = await supabase.functions.invoke(
           'create-user',
           {
@@ -129,6 +143,9 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
               origin: data.origin,
               avatarUrl: avatarPreview || null,
               syncStatus: 'pending',
+            },
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
             },
           },
         )
@@ -143,7 +160,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           return
         }
 
-        // Recarrega a lista de usuários após criação
+        // Recarrega lista de usuários
         await addUser({} as any)
 
         toast({ title: 'Usuário criado com sucesso! Acesso liberado no CRM.' })
