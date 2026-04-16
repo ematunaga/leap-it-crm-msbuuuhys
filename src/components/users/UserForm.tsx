@@ -144,12 +144,8 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
               avatarUrl: avatarPreview || null,
               syncStatus: 'pending',
             },
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        )
-
+           },      
+          )  
         if (error || result?.error) {
           toast({
             title: 'Erro ao criar usuário',
