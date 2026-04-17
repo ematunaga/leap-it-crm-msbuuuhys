@@ -181,7 +181,7 @@ const App = () => (
                     element={<LeadsList />}
                   />
                 }
-              />
+                                />
                     <ProtectedPermissionRoute 
                       resource="atividades" 
                       element={<ActivitiesList />} 
