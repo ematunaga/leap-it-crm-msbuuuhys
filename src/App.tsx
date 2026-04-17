@@ -20,6 +20,7 @@ import OpportunityDetail from './pages/opportunities/OpportunityDetail'
 
 import ActivitiesList from './pages/activities/ActivitiesList'
 import ActivityDetail from './pages/activities/ActivityDetail'
+import LeadsList from './pages/leads/LeadsList'
 
 import GenericListWrapper from './pages/shared/GenericListWrapper'
 import SettingsDashboard from './pages/settings/SettingsDashboard'
@@ -170,6 +171,17 @@ const App = () => (
                 <Route 
                   path="atividades" 
                   element={
+
+                                  {/* Leads */}
+              <Route
+                path="leads"
+                element={
+                  <ProtectedPermissionRoute
+                    resource="leads"
+                    element={<LeadsList />}
+                  />
+                }
+              />
                     <ProtectedPermissionRoute 
                       resource="atividades" 
                       element={<ActivitiesList />} 
