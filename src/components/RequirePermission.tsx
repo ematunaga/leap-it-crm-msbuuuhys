@@ -1,23 +1,26 @@
 import type { ReactNode } from 'react'
-import { useRbac } from '@/hooks/use-rbac'
-import type { Module, Action } from '@/lib/rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 
 interface Props {
-  module: Module
-  action: Action
+  resource: string
+  action: 'view' | 'create' | 'edit' | 'delete'
   fallback?: ReactNode
   children: ReactNode
 }
 
 export function RequirePermission({
-  module,
+  resource,
   action,
   fallback = null,
   children,
 }: Props) {
-  const { can } = useRbac()
+  const { hasPermission, loading } = useRBAC()
 
-  if (!can(module, action)) {
+  if (loading) {
+    return <>{fallback}</>
+  }
+
+  if (!hasPermission(resource, action)) {
     return <>{fallback}</>
   }
 
