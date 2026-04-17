@@ -12,13 +12,14 @@ export type Permission = {
   }
 }
 
+// Tipo que corresponde ao banco de dados
 export type AccessProfile = {
   id: string
-  nome: string
-  descricao: string
-  permissoes: Record<string, Permission>
-  escopo: 'tudo' | 'proprio' | 'equipe'
-  is_admin: boolean
+  name: string // Alinhado com o banco
+  description: string // Alinhado com o banco  
+  permissions: Record<string, Permission> // Alinhado com o banco
+  type: string
+  status: string
   created_at: string
   updated_at: string
 }
@@ -72,9 +73,11 @@ export const useRBAC = () => {
     action: 'view' | 'create' | 'edit' | 'delete'
   ): boolean => {
     if (!profile) return false
-    if (profile.is_admin) return true
+    
+    // Admin tem acesso total
+    if (profile.name === 'Administrador Global') return true
 
-    const permission = profile.permissoes?.[resource]
+    const permission = profile.permissions?.[resource]
     if (!permission) return false
 
     return permission.actions[action] === true
@@ -85,8 +88,7 @@ export const useRBAC = () => {
   const canEdit = (resource: string) => hasPermission(resource, 'edit')
   const canDelete = (resource: string) => hasPermission(resource, 'delete')
 
-  const getScope = () => profile?.escopo || 'proprio'
-  const isAdmin = () => profile?.is_admin || false
+  const isAdmin = () => profile?.name === 'Administrador Global' || false
 
   return {
     profile,
@@ -96,7 +98,6 @@ export const useRBAC = () => {
     canCreate,
     canEdit,
     canDelete,
-    getScope,
     isAdmin,
     refresh: loadUserProfile
   }
