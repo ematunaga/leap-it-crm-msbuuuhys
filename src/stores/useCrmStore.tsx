@@ -67,6 +67,16 @@ interface CrmStore {
   deleteUser: (id: string) => Promise<void>
   syncWithPricingApp: () => Promise<void>
   restoreBackup: (backupData: any) => Promise<void>
+    addLead: (lead: Omit<Lead, 'id'>) => Promise<void>
+  updateLead: (id: string, updates: Partial<Lead>) => Promise<void>
+  deleteLead: (id: string) => Promise<void>
+  convertLead: (id: string, createOpportunity: boolean) => Promise<void>
+  addCompetitor: (comp: Omit<Competitor, 'id'>) => Promise<void>
+  updateCompetitor: (id: string, updates: Partial<Competitor>) => Promise<void>
+  deleteCompetitor: (id: string) => Promise<void>
+  addContract: (contract: Omit<Contract, 'id'>) => Promise<void>
+  updateContract: (id: string, updates: Partial<Contract>) => Promise<void>
+  deleteContract: (id: string) => Promise<void>
   localSnapshots: { id: string; timestamp: string }[]
   restoreLocalSnapshot: (id: string) => Promise<void>
 }
@@ -570,6 +580,121 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }
   }
 
+    // ========== LEADS ==========
+  const addLead = async (lead: Omit<Lead, 'id'>) => {
+    await addEntity('leads', lead, setLeads)
+  }
+
+  const updateLead = async (id: string, updates: Partial<Lead>) => {
+    await updateEntity('leads', id, updates, setLeads)
+  }
+
+  const deleteLead = async (id: string) => {
+    await deleteEntity('leads', id, setLeads)
+  }
+
+  const convertLead = async (id: string, createOpportunity: boolean) => {
+    const lead = leads.find((l) => l.id === id)
+    if (!lead) {
+      toast({ title: 'Lead não encontrado', variant: 'destructive' })
+      return
+    }
+
+    // 1. Criar Account
+    const accountData: Omit<Account, 'id'> = {
+      name: lead.company || lead.name,
+      status: 'prospecto',
+      segment: (lead.segment as any) || 'outros',
+      email: lead.email,
+      phone: lead.phone,
+      accountOwnerId: lead.ownerId,
+      accountOwnerName: lead.ownerName,
+      accountOwnerEmail: lead.ownerEmail,
+    }
+    await addAccount(accountData)
+    const newAccount = accounts.find((a) => a.name === accountData.name)
+    if (!newAccount) return
+
+    // 2. Criar Contact
+    const contactData: Omit<Contact, 'id'> = {
+      name: lead.name,
+      email: lead.email || '',
+      phone: lead.phone,
+      position: lead.position,
+      accountId: newAccount.id,
+      accountName: newAccount.name,
+      accountOwnerId: lead.ownerId,
+      accountOwnerName: lead.ownerName,
+      accountOwnerEmail: lead.ownerEmail,
+    }
+    await addContact(contactData)
+    const newContact = contacts.find((c) => c.email === contactData.email)
+
+    // 3. Criar Opportunity (se solicitado)
+    let newOppId: string | undefined
+    if (createOpportunity && lead.estimatedValue) {
+      const oppData: Omit<Opportunity, 'id'> = {
+        title: `Oportunidade - ${lead.company || lead.name}`,
+        accountId: newAccount.id,
+        accountName: newAccount.name,
+        primaryContactId: newContact?.id,
+        primaryContactName: newContact?.name,
+        opportunityOwnerId: lead.ownerId,
+        value: lead.estimatedValue,
+        currency: 'BRL',
+        saleType: 'nova_venda',
+        modality: 'venda_direta',
+        partner: 'leap_it',
+        stage: 'qualificacao',
+        temperature: lead.temperature || 'morna',
+        nextStep: lead.nextStep || 'Agendar reunião de discovery',
+        nextStepDate: lead.nextStepDate || new Date().toISOString(),
+      }
+      await addOpportunity(oppData)
+      newOppId = opps.find((o) => o.title === oppData.title)?.id
+    }
+
+    // 4. Atualizar Lead como convertido
+    await updateLead(id, {
+      status: 'convertido',
+      convertedAt: new Date().toISOString(),
+      convertedAccountId: newAccount.id,
+      convertedContactId: newContact?.id,
+      convertedOpportunityId: newOppId,
+    })
+
+    toast({
+      title: 'Lead Convertido!',
+      description: `Account, Contact${createOpportunity ? ' e Opportunity' : ''} criados com sucesso.`,
+    })
+  }
+
+  // ========== COMPETITORS ==========
+  const addCompetitor = async (comp: Omit<Competitor, 'id'>) => {
+    await addEntity('competitors', comp, setCompetitors)
+  }
+
+  const updateCompetitor = async (id: string, updates: Partial<Competitor>) => {
+    await updateEntity('competitors', id, updates, setCompetitors)
+  }
+
+  const deleteCompetitor = async (id: string) => {
+    await deleteEntity('competitors', id, setCompetitors)
+  }
+
+  // ========== CONTRACTS ==========
+  const addContract = async (contract: Omit<Contract, 'id'>) => {
+    await addEntity('contracts', contract, setContracts)
+  }
+
+  const updateContract = async (id: string, updates: Partial<Contract>) => {
+    await updateEntity('contracts', id, updates, setContracts)
+  }
+
+  const deleteContract = async (id: string) => {
+    await deleteEntity('contracts', id, setContracts)
+  
+
   const computedActivities = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0]
     return activities.map((a) => {
@@ -641,6 +766,16 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }),
     [
       accounts,
+            addLead,
+      updateLead,
+      deleteLead,
+      convertLead,
+      addCompetitor,
+      updateCompetitor,
+      deleteCompetitor,
+      addContract,
+      updateContract,
+      deleteContract,
       contacts,
       computedOpps,
       stakeholders,
