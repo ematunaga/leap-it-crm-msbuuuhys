@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useRbac } from '@/hooks/use-rbac'
-import type { Module } from '@/lib/rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import {
   Sidebar,
   SidebarContent,
@@ -34,7 +33,7 @@ interface NavItem {
   title: string
   url: string
   icon: React.ElementType
-  module: Module
+  resource: string // Mudado de 'module' para 'resource'
 }
 
 interface NavGroup {
@@ -46,44 +45,44 @@ const navigation: NavGroup[] = [
   {
     title: 'Comercial',
     items: [
-      { title: 'Dashboard',      url: '/',             icon: LayoutDashboard, module: 'dashboard'      },
-      { title: 'Contas',         url: '/contas',       icon: Building2,       module: 'accounts'       },
-      { title: 'Filiais',        url: '/filiais',      icon: Store,           module: 'accounts'       },
-      { title: 'Contatos',       url: '/contatos',     icon: Users,           module: 'contacts'       },
-      { title: 'Oportunidades',  url: '/oportunidades',icon: Briefcase,       module: 'opportunities'  },
-      { title: 'Pipeline',       url: '/pipeline',     icon: GitPullRequest,  module: 'opportunities'  },
-      { title: 'Atividades',     url: '/atividades',   icon: Calendar,        module: 'activities'     },
-      { title: 'Propostas',      url: '/propostas',    icon: FileText,        module: 'proposals'      },
+      { title: 'Dashboard', url: '/', icon: LayoutDashboard, resource: 'dashboard' },
+      { title: 'Contas', url: '/contas', icon: Building2, resource: 'contas' },
+      { title: 'Filiais', url: '/filiais', icon: Store, resource: 'contas' },
+      { title: 'Contatos', url: '/contatos', icon: Users, resource: 'contatos' },
+      { title: 'Oportunidades', url: '/oportunidades', icon: Briefcase, resource: 'oportunidades' },
+      { title: 'Pipeline', url: '/pipeline', icon: GitPullRequest, resource: 'pipeline' },
+      { title: 'Atividades', url: '/atividades', icon: Calendar, resource: 'atividades' },
+      { title: 'Propostas', url: '/propostas', icon: FileText, resource: 'propostas' },
     ],
   },
   {
     title: 'Inteligência',
     items: [
-      { title: 'Concorrentes',   url: '/concorrentes', icon: Target,          module: 'competitors'    },
-      { title: 'Relatórios',     url: '/relatorios',   icon: BarChart2,       module: 'reports'        },
+      { title: 'Concorrentes', url: '/concorrentes', icon: Target, resource: 'concorrentes' },
+      { title: 'Relatórios', url: '/relatorios', icon: BarChart2, resource: 'relatorios' },
     ],
   },
   {
     title: 'Operação',
     items: [
-      { title: 'Leads',          url: '/leads',        icon: Filter,          module: 'leads'          },
-      { title: 'Campanhas',      url: '/campanhas',    icon: Megaphone,       module: 'campaigns'      },
-      { title: 'Contratos',      url: '/contratos',    icon: FileSignature,   module: 'contracts'      },
+      { title: 'Leads', url: '/leads', icon: Filter, resource: 'leads' },
+      { title: 'Campanhas', url: '/campanhas', icon: Megaphone, resource: 'campanhas' },
+      { title: 'Contratos', url: '/contratos', icon: FileSignature, resource: 'contratos' },
     ],
   },
   {
     title: 'Administração',
     items: [
-      { title: 'Usuários',       url: '/usuarios',     icon: Users,           module: 'settings'       },
-      { title: 'Configurações',  url: '/configuracoes',icon: Settings,        module: 'settings'       },
-      { title: 'Auditoria',      url: '/auditoria',    icon: ShieldCheck,     module: 'settings'       },
+      { title: 'Usuários', url: '/usuarios', icon: Users, resource: 'configuracoes' },
+      { title: 'Configurações', url: '/configuracoes', icon: Settings, resource: 'configuracoes' },
+      { title: 'Auditoria', url: '/auditoria', icon: ShieldCheck, resource: 'configuracoes' },
     ],
   },
 ]
 
 export function AppSidebar() {
   const location = useLocation()
-  const { can } = useRbac()
+  const { canView, isAdmin } = useRBAC()
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -100,10 +99,15 @@ export function AppSidebar() {
 
       <SidebarContent>
         {navigation.map((group) => {
-          // Filtra itens sem permissão de visualizar
-          const visibleItems = group.items.filter((item) =>
-            can(item.module, 'visualizar'),
-          )
+          // Filtra itens baseado em permissões de recursos
+          const visibleItems = group.items.filter((item) => {
+            // Dashboard é visível para todos
+            if (item.resource === 'dashboard') return true
+            // Admin vê tudo
+            if (isAdmin()) return true
+            // Verifica permissão de visualização do recurso
+            return canView(item.resource)
+          })
 
           // Esconde o grupo inteiro se não há itens visíveis
           if (visibleItems.length === 0) return null
