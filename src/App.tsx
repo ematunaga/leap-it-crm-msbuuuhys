@@ -173,15 +173,7 @@ const App = () => (
                   element={
 
                                   {/* Leads */}
-              <Route
-                path="leads"
-                element={
-                  <ProtectedPermissionRoute
-                    resource="leads"
-                    element={<LeadsList />}
-                  />
-                }
-                                />
+              <Route path="leads" element={<ProtectedPermissionRoute resource="leads" element={<LeadsList />} />} />
                     <ProtectedPermissionRoute 
                       resource="atividades" 
                       element={<ActivitiesList />} 
