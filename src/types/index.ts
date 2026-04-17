@@ -93,7 +93,6 @@ export interface Opportunity {
   primaryContactId?: string
   primaryContactName?: string
   opportunityOwnerId?: string
-
   value: number
   currency: string
   valueUsd?: number
@@ -108,7 +107,6 @@ export interface Opportunity {
   expectedCloseDate?: string
   source?: string
   priority?: string
-
   identifiedPain?: string
   businessImpact?: string
   decisionCriteria?: string
@@ -116,14 +114,12 @@ export interface Opportunity {
   budgetStatus?: string
   authorityStatus?: string
   timingStatus?: string
-
   championStatus?: string
   championContactId?: string
   economicBuyerStatus?: string
   economicBuyerContactId?: string
   decisionMakerStatus?: string
   decisionMakerContactId?: string
-
   temperature: string
   winProbability?: number
   riskLevel?: string
@@ -135,11 +131,9 @@ export interface Opportunity {
   stageUpdatedAt?: string
   statusFollowUp?: string
   isOverdue?: boolean
-
   mainCompetitorId?: string
   mainCompetitorName?: string
   competitivePosition?: string
-
   clientBudget?: number
   budgetMargin?: number
   totalCost?: number
@@ -154,7 +148,6 @@ export interface Opportunity {
   sellerCommissionPercent?: number
   netMarginPercent?: number
   distributor?: string
-
   dealRegistration?: boolean
   lossReason?: string
   lossReasonDetail?: string
@@ -197,7 +190,6 @@ export interface Activity {
   ownerId?: string
   ownerEmail?: string
   ownerName?: string
-
   accountId?: string
   accountName?: string
   contactId?: string
@@ -205,7 +197,6 @@ export interface Activity {
   opportunityId?: string
   opportunityTitle?: string
   leadId?: string
-
   type:
     | 'call'
     | 'email'
@@ -228,11 +219,9 @@ export interface Activity {
     | 'interno'
     | 'outro'
     | string
-
   subject: string
   summary: string
   details?: string
-
   outcome?:
     | 'positivo'
     | 'neutro'
@@ -243,26 +232,20 @@ export interface Activity {
     | 'concluido'
     | string
   engagementLevel?: 'baixo' | 'medio' | 'alto' | string
-
   interactionAt?: string
   scheduledDate?: string
   nextStepDate?: string
-
   status: 'planejada' | 'em_andamento' | 'concluida' | 'cancelada' | 'atrasada' | string
   priority?: 'baixa' | 'media' | 'alta' | 'critica' | string
   completed?: boolean
   completedAt?: string
   isOverdue?: boolean
-
   durationMinutes?: number
   location?: string
   attendees?: string[]
-
   objections?: string
   customerSignals?: string
-
   nextStep?: string
-
   sourceEntity?:
     | 'lead'
     | 'contact'
@@ -273,12 +256,9 @@ export interface Activity {
     | 'manual'
     | string
   attachments?: { name: string; url: string }[]
-
   createdAt?: string
   updatedAt?: string
   notes?: string
-
-  // Legacy fields
   relatedTo?: string
   relatedId?: string
   date?: string
@@ -287,27 +267,96 @@ export interface Activity {
 export interface Lead {
   id: string
   name: string
-  company: string
-  status: string
-  source: string
-  createdAt: string
+  company?: string
+  email?: string
+  phone?: string
+  position?: string
+  segment?: string
+  source?:
+    | 'indicacao'
+    | 'linkedin'
+    | 'site'
+    | 'evento'
+    | 'cold_outbound'
+    | 'parceiro'
+    | 'campanha'
+    | 'outro'
+    | string
+  status:
+    | 'novo'
+    | 'contatado'
+    | 'qualificado'
+    | 'nao_qualificado'
+    | 'convertido'
+    | string
+  temperature?: 'fria' | 'morna' | 'quente' | string
+  score?: number
+  ownerId?: string
+  ownerName?: string
+  ownerEmail?: string
+  nextStep?: string
+  nextStepDate?: string
+  notes?: string
+  convertedAt?: string
+  convertedAccountId?: string
+  convertedContactId?: string
+  convertedOpportunityId?: string
+  estimatedValue?: number
+  linkedinUrl?: string
+  website?: string
+  city?: string
+  state?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Competitor {
   id: string
   name: string
-  strength: string
-  weakness: string
-  winRate: string
+  website?: string
+  segment?: string
+  mainProducts?: string
+  strengths?: string
+  weaknesses?: string
+  winRate?: number
+  lossRate?: number
+  positioning?: string
+  priceLevel?: 'baixo' | 'medio' | 'alto' | string
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+  // Legacy
+  strength?: string
+  weakness?: string
 }
 
 export interface Contract {
   id: string
   accountId: string
-  mrr: number
+  accountName?: string
+  opportunityId?: string
+  title: string
+  type?: 'mensal' | 'anual' | 'pontual' | 'projeto' | string
+  status: 'ativo' | 'expirado' | 'cancelado' | 'pendente' | 'renovacao' | string
+  mrr?: number
+  arr?: number
+  totalValue?: number
+  currency?: string
   startDate: string
-  endDate: string
-  status: string
+  endDate?: string
+  renewalDate?: string
+  autoRenewal?: boolean
+  noticePeriodDays?: number
+  ownerId?: string
+  ownerName?: string
+  signatoryName?: string
+  signatoryEmail?: string
+  documentUrl?: string
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+  // Legacy
+  mrr_value?: number
 }
 
 export interface Proposal {
@@ -340,7 +389,11 @@ export interface PermissionsMatrix {
   competitors?: Omit<PermissionScope, 'escopo'>
   distributors?: Omit<PermissionScope, 'escopo'>
   reports?: { visualizar?: boolean; exportar?: boolean }
-  settings?: { visualizar?: boolean; gerenciar_perfis?: boolean; gerenciar_usuarios?: boolean }
+  settings?: {
+    visualizar?: boolean
+    gerenciar_perfis?: boolean
+    gerenciar_usuarios?: boolean
+  }
   avancadas?: {
     visualizar_valores_financeiros?: boolean
     exportar_dados?: boolean
