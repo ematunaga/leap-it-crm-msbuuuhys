@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-
 import Layout from './components/Layout'
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
@@ -32,23 +31,38 @@ import { AuthProvider } from './hooks/use-auth'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/auth/Login'
 import UpdatePassword from './pages/auth/UpdatePassword'
+import { RequirePermission } from './components/RequirePermission'
+import { useRBAC } from './hooks/use-rbac'
 
-import { AccessDenied } from './components/AccessDenied'
-import { useRbac } from './hooks/use-rbac'
-import type { Module, Action } from './lib/rbac'
+// Componente de acesso negado simples
+const AccessDenied = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="text-center">
+      <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
+      <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
+    </div>
+  </div>
+)
 
-// Componente que protege uma rota por módulo + ação
-function PrivateRoute({
-  module,
-  action = 'visualizar',
+// Wrapper para rotas protegidas por permissão
+function ProtectedPermissionRoute({
+  resource,
+  action = 'view',
   element,
 }: {
-  module: Module
-  action?: Action
+  resource: string
+  action?: 'view' | 'create' | 'edit' | 'delete'
   element: React.ReactElement
 }) {
-  const { can } = useRbac()
-  return can(module, action) ? element : <AccessDenied />
+  return (
+    <RequirePermission 
+      resource={resource} 
+      action={action}
+      fallback={<AccessDenied />}
+    >
+      {element}
+    </RequirePermission>
+  )
 }
 
 const App = () => (
@@ -58,216 +72,217 @@ const App = () => (
         <TooltipProvider>
           <Sonner />
           <Toaster />
-
           <Routes>
             {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/update-password" element={<UpdatePassword />} />
-
+            
             {/* Rotas protegidas por autenticação */}
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
-
-                {/* Dashboard — todos os autenticados */}
+                {/* Dashboard - todos os autenticados */}
                 <Route path="/" element={<Index />} />
-
-                {/* Meu perfil — todos os autenticados */}
+                
+                {/* Meu perfil - todos os autenticados */}
                 <Route path="meu-perfil" element={<UserProfile />} />
-
+                
                 {/* Contas */}
-                <Route
-                  path="contas"
+                <Route 
+                  path="contas" 
                   element={
-                    <PrivateRoute
-                      module="accounts"
-                      element={<AccountsList />}
+                    <ProtectedPermissionRoute 
+                      resource="contas" 
+                      element={<AccountsList />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="contas/:id"
+                <Route 
+                  path="contas/:id" 
                   element={
-                    <PrivateRoute
-                      module="accounts"
-                      element={<AccountDetail />}
+                    <ProtectedPermissionRoute 
+                      resource="contas" 
+                      element={<AccountDetail />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="filiais"
+                <Route 
+                  path="filiais" 
                   element={
-                    <PrivateRoute
-                      module="accounts"
-                      element={<BranchesReport />}
+                    <ProtectedPermissionRoute 
+                      resource="contas" 
+                      element={<BranchesReport />} 
                     />
-                  }
+                  } 
                 />
-
+                
                 {/* Contatos */}
-                <Route
-                  path="contatos"
+                <Route 
+                  path="contatos" 
                   element={
-                    <PrivateRoute
-                      module="contacts"
-                      element={<ContactsList />}
+                    <ProtectedPermissionRoute 
+                      resource="contatos" 
+                      element={<ContactsList />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="contatos/:id"
+                <Route 
+                  path="contatos/:id" 
                   element={
-                    <PrivateRoute
-                      module="contacts"
-                      element={<ContactDetail />}
+                    <ProtectedPermissionRoute 
+                      resource="contatos" 
+                      element={<ContactDetail />} 
                     />
-                  }
+                  } 
                 />
-
+                
                 {/* Pipeline */}
-                <Route
-                  path="pipeline"
+                <Route 
+                  path="pipeline" 
                   element={
-                    <PrivateRoute
-                      module="opportunities"
-                      element={<PipelineBoard />}
+                    <ProtectedPermissionRoute 
+                      resource="pipeline" 
+                      element={<PipelineBoard />} 
                     />
-                  }
+                  } 
                 />
-
+                
                 {/* Oportunidades */}
-                <Route
-                  path="oportunidades"
+                <Route 
+                  path="oportunidades" 
                   element={
-                    <PrivateRoute
-                      module="opportunities"
-                      element={<OpportunitiesDashboard />}
+                    <ProtectedPermissionRoute 
+                      resource="oportunidades" 
+                      element={<OpportunitiesDashboard />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="oportunidades/:id"
+                <Route 
+                  path="oportunidades/:id" 
                   element={
-                    <PrivateRoute
-                      module="opportunities"
-                      element={<OpportunityDetail />}
+                    <ProtectedPermissionRoute 
+                      resource="oportunidades" 
+                      element={<OpportunityDetail />} 
                     />
-                  }
+                  } 
                 />
-
+                
                 {/* Atividades */}
-                <Route
-                  path="atividades"
+                <Route 
+                  path="atividades" 
                   element={
-                    <PrivateRoute
-                      module="activities"
-                      element={<ActivitiesList />}
+                    <ProtectedPermissionRoute 
+                      resource="atividades" 
+                      element={<ActivitiesList />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="atividades/:id"
+                <Route 
+                  path="atividades/:id" 
                   element={
-                    <PrivateRoute
-                      module="activities"
-                      element={<ActivityDetail />}
+                    <ProtectedPermissionRoute 
+                      resource="atividades" 
+                      element={<ActivityDetail />} 
                     />
-                  }
+                  } 
                 />
-
+                
+                {/* Leads */}
+                <Route 
+                  path="leads" 
+                  element={
+                    <ProtectedPermissionRoute 
+                      resource="leads" 
+                      element={<GenericListWrapper />} 
+                    />
+                  } 
+                />
+                
+                {/* Campanhas */}
+                <Route 
+                  path="campanhas" 
+                  element={
+                    <ProtectedPermissionRoute 
+                      resource="campanhas" 
+                      element={<GenericListWrapper />} 
+                    />
+                  } 
+                />
+                
                 {/* Propostas */}
-                <Route
-                  path="propostas"
+                <Route 
+                  path="propostas" 
                   element={
-                    <PrivateRoute
-                      module="proposals"
-                      element={<GenericListWrapper />}
+                    <ProtectedPermissionRoute 
+                      resource="propostas" 
+                      element={<GenericListWrapper />} 
                     />
-                  }
+                  } 
                 />
-
-                {/* Inteligência */}
-                <Route
-                  path="concorrentes"
+                
+                {/* Relatórios */}
+                <Route 
+                  path="relatorios" 
                   element={
-                    <PrivateRoute
-                      module="competitors"
-                      element={<GenericListWrapper />}
+                    <ProtectedPermissionRoute 
+                      resource="relatorios" 
+                      element={<GenericListWrapper />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="relatorios"
+                
+                {/* Contratos */}
+                <Route 
+                  path="contratos" 
                   element={
-                    <PrivateRoute
-                      module="reports"
-                      element={<GenericListWrapper />}
+                    <ProtectedPermissionRoute 
+                      resource="contratos" 
+                      element={<GenericListWrapper />} 
                     />
-                  }
+                  } 
                 />
-
-                {/* Operação */}
-                <Route
-                  path="leads"
+                
+                {/* Concorrentes */}
+                <Route 
+                  path="concorrentes" 
                   element={
-                    <PrivateRoute
-                      module="leads"
-                      element={<GenericListWrapper />}
+                    <ProtectedPermissionRoute 
+                      resource="concorrentes" 
+                      element={<GenericListWrapper />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="campanhas"
+                
+                {/* Administração */}
+                <Route 
+                  path="usuarios" 
                   element={
-                    <PrivateRoute
-                      module="campaigns"
-                      element={<GenericListWrapper />}
+                    <ProtectedPermissionRoute 
+                      resource="configuracoes" 
+                      element={<UsersList />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="contratos"
+                <Route 
+                  path="configuracoes" 
                   element={
-                    <PrivateRoute
-                      module="contracts"
-                      element={<GenericListWrapper />}
+                    <ProtectedPermissionRoute 
+                      resource="configuracoes" 
+                      element={<SettingsDashboard />} 
                     />
-                  }
+                  } 
                 />
-
-                {/* Administração — só admin e gestor */}
-                <Route
-                  path="usuarios"
+                <Route 
+                  path="auditoria" 
                   element={
-                    <PrivateRoute
-                      module="settings"
-                      action="gerenciar_usuarios"
-                      element={<UsersList />}
+                    <ProtectedPermissionRoute 
+                      resource="configuracoes" 
+                      element={<GenericListWrapper />} 
                     />
-                  }
+                  } 
                 />
-                <Route
-                  path="configuracoes"
-                  element={
-                    <PrivateRoute
-                      module="settings"
-                      element={<SettingsDashboard />}
-                    />
-                  }
-                />
-                <Route
-                  path="auditoria"
-                  element={
-                    <PrivateRoute
-                      module="settings"
-                      action="gerenciar_papeis"
-                      element={<GenericListWrapper />}
-                    />
-                  }
-                />
-
               </Route>
             </Route>
-
+            
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
