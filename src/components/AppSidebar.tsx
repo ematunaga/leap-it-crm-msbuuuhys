@@ -46,9 +46,9 @@ const navigation: NavGroup[] = [
     title: 'Comercial',
     items: [
       { title: 'Dashboard', url: '/', icon: LayoutDashboard, resource: 'dashboard' },
-      { title: 'Contas', url: '/contas', icon: Building2, resource: 'contas' },
-      { title: 'Filiais', url: '/filiais', icon: Store, resource: 'contas' },
-      { title: 'Contatos', url: '/contatos', icon: Users, resource: 'contatos' },
+      { title: 'Contas', url: '/contas', icon: Building2, resource: 'accounts' },
+      { title: 'Filiais', url: '/filiais', icon: Store, resource: 'accounts' },
+      { title: 'Contatos', url: '/contatos', icon: Users, resource: 'contacts' },
       { title: 'Oportunidades', url: '/oportunidades', icon: Briefcase, resource: 'oportunidades' },
       { title: 'Pipeline', url: '/pipeline', icon: GitPullRequest, resource: 'pipeline' },
       { title: 'Atividades', url: '/atividades', icon: Calendar, resource: 'atividades' },
@@ -66,7 +66,7 @@ const navigation: NavGroup[] = [
     title: 'Operação',
     items: [
       { title: 'Leads', url: '/leads', icon: Filter, resource: 'leads' },
-      { title: 'Campanhas', url: '/campanhas', icon: Megaphone, resource: 'campanhas' },
+      { title: 'Campanhas', url: '/campanhas', icon: Megaphone, resource: 'campaigns' },
       { title: 'Contratos', url: '/contratos', icon: FileSignature, resource: 'contratos' },
     ],
   },
