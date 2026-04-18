@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
 import { convertCurrency, formatDate, formatMoney } from '@/lib/utils'
 import { Plus } from 'lucide-react'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 import { RequirePermission } from '@/components/RequirePermission'
 import { useToast } from '@/hooks/use-toast'
@@ -38,7 +38,7 @@ const stageLabels: Record<string, string> = {
 export default function PipelineBoard() {
   const { opps, updateOppStage, currencyView, setCurrencyView, ptaxRate, ptaxDate } = useCrmStore()
   const [openOpp, setOpenOpp] = useState(false)
-  const { can } = useRbac()
+  const { can } = useRBAC()
   const { toast } = useToast()
 
   if (!can('opportunities', 'visualizar')) return <AccessDenied />
