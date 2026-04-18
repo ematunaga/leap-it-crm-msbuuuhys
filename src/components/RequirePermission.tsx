@@ -16,8 +16,9 @@ export function RequirePermission({
 }: Props) {
   const { hasPermission, loading } = useRBAC()
 
+  // Enquanto carrega permissoes, nao renderiza nada (evita flash de acesso negado)
   if (loading) {
-    return <>{fallback}</>
+    return null
   }
 
   if (!hasPermission(resource, action)) {
