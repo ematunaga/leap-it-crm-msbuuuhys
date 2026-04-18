@@ -19,7 +19,7 @@ import { formatDate } from '@/lib/utils'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ActivityForm } from '@/components/activities/ActivityForm'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 import { RequirePermission } from '@/components/RequirePermission'
 
@@ -28,7 +28,7 @@ export default function ActivityDetail() {
   const { activities } = useCrmStore()
   const activity = activities.find((a) => a.id === id)
   const [editOpen, setEditOpen] = useState(false)
-  const { can } = useRbac()
+  const { can } = useRBAC()
 
   if (!can('activities', 'visualizar')) return <AccessDenied />
 
