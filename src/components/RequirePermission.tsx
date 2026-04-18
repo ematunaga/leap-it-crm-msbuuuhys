@@ -16,9 +16,10 @@ export function RequirePermission({
 }: Props) {
   const { hasPermission, loading } = useRBAC()
 
-  // Enquanto carrega permissoes, nao renderiza nada (evita flash de acesso negado)
+  // HOTFIX: Enquanto carrega, renderiza o conteúdo (evita tela em branco)
+  // Validação final de permissão acontece no servidor via RLS
   if (loading) {
-    return null
+    return <>{children}</>
   }
 
   if (!hasPermission(resource, action)) {
