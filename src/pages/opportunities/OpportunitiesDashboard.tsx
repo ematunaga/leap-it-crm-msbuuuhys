@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { OpportunityForm } from '@/components/opportunities/OpportunityForm'
 import { useToast } from '@/hooks/use-toast'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 import { RequirePermission } from '@/components/RequirePermission'
 
@@ -28,7 +28,7 @@ export default function OpportunitiesDashboard() {
   const { opps, accounts, deleteOpportunity, currencyView, setCurrencyView, ptaxRate, ptaxDate } =
     useCrmStore()
   const { toast } = useToast()
-  const { can } = useRbac()
+  const { can } = useRBAC()
 
   const [year, setYear] = useState<string>('todos')
   const [quarter, setQuarter] = useState<string>('todos')
