@@ -9,24 +9,18 @@ import NotFound from './pages/NotFound'
 import AccountsList from './pages/accounts/AccountsList'
 import AccountDetail from './pages/accounts/AccountDetail'
 import BranchesReport from './pages/accounts/BranchesReport'
-
 import ContactsList from './pages/contacts/ContactsList'
 import ContactDetail from './pages/contacts/ContactDetail'
-
 import PipelineBoard from './pages/pipeline/PipelineBoard'
-
 import OpportunitiesDashboard from './pages/opportunities/OpportunitiesDashboard'
 import OpportunityDetail from './pages/opportunities/OpportunityDetail'
-
 import ActivitiesList from './pages/activities/ActivitiesList'
 import ActivityDetail from './pages/activities/ActivityDetail'
 import LeadsList from './pages/leads/LeadsList'
-
 import GenericListWrapper from './pages/shared/GenericListWrapper'
 import SettingsDashboard from './pages/settings/SettingsDashboard'
 import UsersList from './pages/users/UsersList'
 import UserProfile from './pages/settings/UserProfile'
-
 import { CrmProvider } from './stores/useCrmStore'
 import { AuthProvider } from './hooks/use-auth'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -56,14 +50,32 @@ function ProtectedPermissionRoute({
   element: React.ReactElement
 }) {
   return (
-    <RequirePermission 
-      resource={resource} 
+    <RequirePermission
+      resource={resource}
       action={action}
       fallback={<AccessDenied />}
     >
       {element}
     </RequirePermission>
   )
+}
+
+// Componente que redireciona SDR para /leads ao tentar acessar o Dashboard
+function DashboardRoute() {
+  const { profile, loading } = useRBAC()
+  if (loading) return null
+  // SDR nao tem acesso ao dashboard - redireciona para leads
+  if (profile && profile.name === 'SDR') {
+    return <Navigate to="/leads" replace />
+  }
+  // Gestor Comercial e Admin tem acesso ao dashboard
+  if (profile && profile.name !== 'Administrador Global' && profile.name !== 'Gestor Comercial') {
+    const perms = profile.permissions?.['dashboard']
+    if (!perms || !perms.actions?.view) {
+      return <Navigate to="/leads" replace />
+    }
+  }
+  return <Index />
 }
 
 const App = () => (
@@ -77,216 +89,213 @@ const App = () => (
             {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/update-password" element={<UpdatePassword />} />
-            
+
             {/* Rotas protegidas por autenticação */}
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
-                {/* Dashboard - todos os autenticados */}
-                <Route path="/" element={<Index />} />
-                
+                {/* Dashboard - protegido por role */}
+                <Route path="/" element={<DashboardRoute />} />
+
                 {/* Meu perfil - todos os autenticados */}
                 <Route path="meu-perfil" element={<UserProfile />} />
-                
-                {/* Contas */}
-                <Route 
-                  path="contas" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="contas" 
-                      element={<AccountsList />} 
-                    />
-                  } 
-                />
-                <Route 
-                  path="contas/:id" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="contas" 
-                      element={<AccountDetail />} 
-                    />
-                  } 
-                />
-                <Route 
-                  path="filiais" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="contas" 
-                      element={<BranchesReport />} 
-                    />
-                  } 
-                />
-                
-                {/* Contatos */}
-                <Route 
-                  path="contatos" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="contatos" 
-                      element={<ContactsList />} 
-                    />
-                  } 
-                />
-                <Route 
-                  path="contatos/:id" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="contatos" 
-                      element={<ContactDetail />} 
-                    />
-                  } 
-                />
-                
-                {/* Pipeline */}
-                <Route 
-                  path="pipeline" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="pipeline" 
-                      element={<PipelineBoard />} 
-                    />
-                  } 
-                />
-                
-                {/* Oportunidades */}
-                <Route 
-                  path="oportunidades" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="oportunidades" 
-                      element={<OpportunitiesDashboard />} 
-                    />
-                  } 
-                />
-                <Route 
-                  path="oportunidades/:id" 
-                  element={
-                    <ProtectedPermissionRoute 
-                      resource="oportunidades" 
-                      element={<OpportunityDetail />} 
-                    />
-                  } 
-                />
-                
-                {/* Atividades */}
-                <Route 
-                  path="atividades" 
-                  element={
 
-                                  {/* Leads */}
-              <Route path="leads" element={<ProtectedPermissionRoute resource="leads" element={<LeadsList />} />} />
-                    <ProtectedPermissionRoute 
-                      resource="atividades" 
-                      element={<ActivitiesList />} 
-                    />
-                  } 
-                />
-                <Route 
-                  path="atividades/:id" 
+                {/* Contas */}
+                <Route
+                  path="contas"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="atividades" 
-                      element={<ActivityDetail />} 
+                    <ProtectedPermissionRoute
+                      resource="contas"
+                      element={<AccountsList />}
                     />
-                  } 
+                  }
                 />
-                
+                <Route
+                  path="contas/:id"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="contas"
+                      element={<AccountDetail />}
+                    />
+                  }
+                />
+                <Route
+                  path="filiais"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="contas"
+                      element={<BranchesReport />}
+                    />
+                  }
+                />
+
+                {/* Contatos */}
+                <Route
+                  path="contatos"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="contatos"
+                      element={<ContactsList />}
+                    />
+                  }
+                />
+                <Route
+                  path="contatos/:id"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="contatos"
+                      element={<ContactDetail />}
+                    />
+                  }
+                />
+
+                {/* Pipeline */}
+                <Route
+                  path="pipeline"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="pipeline"
+                      element={<PipelineBoard />}
+                    />
+                  }
+                />
+
+                {/* Oportunidades */}
+                <Route
+                  path="oportunidades"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="oportunidades"
+                      element={<OpportunitiesDashboard />}
+                    />
+                  }
+                />
+                <Route
+                  path="oportunidades/:id"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="oportunidades"
+                      element={<OpportunityDetail />}
+                    />
+                  }
+                />
+
+                {/* Atividades */}
+                <Route
+                  path="atividades"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="atividades"
+                      element={<ActivitiesList />}
+                    />
+                  }
+                />
+                <Route
+                  path="atividades/:id"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="atividades"
+                      element={<ActivityDetail />}
+                    />
+                  }
+                />
+
                 {/* Leads */}
-                <Route 
-                  path="leads" 
+                <Route
+                  path="leads"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="leads" 
-                      element={<GenericListWrapper />} 
+                    <ProtectedPermissionRoute
+                      resource="leads"
+                      element={<LeadsList />}
                     />
-                  } 
+                  }
                 />
-                
+
                 {/* Campanhas */}
-                <Route 
-                  path="campanhas" 
+                <Route
+                  path="campanhas"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="campanhas" 
-                      element={<GenericListWrapper />} 
+                    <ProtectedPermissionRoute
+                      resource="campanhas"
+                      element={<GenericListWrapper />}
                     />
-                  } 
+                  }
                 />
-                
+
                 {/* Propostas */}
-                <Route 
-                  path="propostas" 
+                <Route
+                  path="propostas"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="propostas" 
-                      element={<GenericListWrapper />} 
+                    <ProtectedPermissionRoute
+                      resource="propostas"
+                      element={<GenericListWrapper />}
                     />
-                  } 
+                  }
                 />
-                
+
                 {/* Relatórios */}
-                <Route 
-                  path="relatorios" 
+                <Route
+                  path="relatorios"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="relatorios" 
-                      element={<GenericListWrapper />} 
+                    <ProtectedPermissionRoute
+                      resource="relatorios"
+                      element={<GenericListWrapper />}
                     />
-                  } 
+                  }
                 />
-                
+
                 {/* Contratos */}
-                <Route 
-                  path="contratos" 
+                <Route
+                  path="contratos"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="contratos" 
-                      element={<GenericListWrapper />} 
+                    <ProtectedPermissionRoute
+                      resource="contratos"
+                      element={<GenericListWrapper />}
                     />
-                  } 
+                  }
                 />
-                
+
                 {/* Concorrentes */}
-                <Route 
-                  path="concorrentes" 
+                <Route
+                  path="concorrentes"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="concorrentes" 
-                      element={<GenericListWrapper />} 
+                    <ProtectedPermissionRoute
+                      resource="concorrentes"
+                      element={<GenericListWrapper />}
                     />
-                  } 
+                  }
                 />
-                
+
                 {/* Administração */}
-                <Route 
-                  path="usuarios" 
+                <Route
+                  path="usuarios"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="configuracoes" 
-                      element={<UsersList />} 
+                    <ProtectedPermissionRoute
+                      resource="configuracoes"
+                      element={<UsersList />}
                     />
-                  } 
+                  }
                 />
-                <Route 
-                  path="configuracoes" 
+                <Route
+                  path="configuracoes"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="configuracoes" 
-                      element={<SettingsDashboard />} 
+                    <ProtectedPermissionRoute
+                      resource="configuracoes"
+                      element={<SettingsDashboard />}
                     />
-                  } 
+                  }
                 />
-                <Route 
-                  path="auditoria" 
+                <Route
+                  path="auditoria"
                   element={
-                    <ProtectedPermissionRoute 
-                      resource="configuracoes" 
-                      element={<GenericListWrapper />} 
+                    <ProtectedPermissionRoute
+                      resource="configuracoes"
+                      element={<GenericListWrapper />}
                     />
-                  } 
+                  }
                 />
               </Route>
             </Route>
-            
+
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
