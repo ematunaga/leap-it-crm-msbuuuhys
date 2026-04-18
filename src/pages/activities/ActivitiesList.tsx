@@ -12,14 +12,14 @@ import { Link } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 import { RequirePermission } from '@/components/RequirePermission'
 
 export default function ActivitiesList() {
   const { activities, deleteActivity } = useCrmStore()
   const { toast } = useToast()
-  const { can } = useRbac()
+  const { can } = useRBAC()
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<Activity | null>(null)
   const [viewMode, setViewMode] = useState('timeline')
