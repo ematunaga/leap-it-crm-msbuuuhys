@@ -80,8 +80,16 @@ export const useRBAC = () => {
     const permission = profile.permissions?.[resource]
     if (!permission) return false
 
-    return permission.actions[action] === true
-  }
+    // Mapeia ações inglês -> português conforme estrutura do Supabase
+    const actionMap: Record<string, string> = {
+      view: 'visualizar',
+      create: 'criar',
+      edit: 'editar',
+      delete: 'excluir'
+    }
+    
+    const ptAction = actionMap[action]
+    return permission[ptAction] === true  }
 
   const canView = (resource: string) => hasPermission(resource, 'view')
   const canCreate = (resource: string) => hasPermission(resource, 'create')
