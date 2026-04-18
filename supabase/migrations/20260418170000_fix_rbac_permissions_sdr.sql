@@ -165,8 +165,8 @@ VALUES (
 );
 
 -- Atualiza referência access_profile_id na tabela app_users
-ALTER TABLE public.app_users RENAME COLUMN profile_id TO access_profile_id;
-
+-- REMOVIDO: Tentativa de RENAME COLUMN profile_id causava erro (coluna não existe)
+-- A coluna access_profile_id é adicionada pela migration 20260418180000
 -- Log de sucesso
 DO $$
 BEGIN
