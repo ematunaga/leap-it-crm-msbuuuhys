@@ -693,6 +693,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
 
   const deleteContract = async (id: string) => {
     await deleteEntity('contracts', id, setContracts)
+  }
   
 
   const computedActivities = useMemo(() => {
@@ -763,7 +764,17 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       restoreBackup,
       localSnapshots,
       restoreLocalSnapshot,
-    }),
+    
+    addLead,
+    updateLead,
+    deleteLead,
+    convertLead,
+    addCompetitor,
+    updateCompetitor,
+    deleteCompetitor,
+    addContract,
+    updateContract,
+    deleteContract,}),
     [
       accounts,
             addLead,
