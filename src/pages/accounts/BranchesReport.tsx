@@ -2,12 +2,12 @@ import { GenericDataTable } from '../shared/GenericDataTable'
 import useCrmStore from '@/stores/useCrmStore'
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 
 export default function BranchesReport() {
   const { accounts } = useCrmStore()
-  const { can } = useRbac()
+  const { can } = useRBAC()
 
   if (!can('accounts', 'visualizar')) return <AccessDenied />
 
