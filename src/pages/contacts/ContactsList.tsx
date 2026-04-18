@@ -11,7 +11,7 @@ import { Plus, Trash2, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 import { RequirePermission } from '@/components/RequirePermission'
 
@@ -20,7 +20,7 @@ export default function ContactsList() {
   const [open, setOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const { toast } = useToast()
-  const { can } = useRbac()
+  const { can } = useRBAC()
 
   if (!can('contacts', 'visualizar')) return <AccessDenied />
 
