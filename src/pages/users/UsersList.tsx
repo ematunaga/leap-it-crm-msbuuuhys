@@ -9,13 +9,13 @@ import { AppUser } from '@/types'
 import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 
 export default function UsersList() {
   const { users, profiles, deleteUser, syncWithPricingApp } = useCrmStore()
   const { toast } = useToast()
-  const { can } = useRbac() // ✅ novo hook
+  const { can } = useRBAC() // ✅ novo hook
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<AppUser | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
