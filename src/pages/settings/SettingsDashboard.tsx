@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Download, Database, HardDriveDownload, UploadCloud, History } from 'lucide-react'
 import useCrmStore from '@/stores/useCrmStore'
 import { useToast } from '@/hooks/use-toast'
-import { useRbac } from '@/hooks/use-rbac'
+import { useRBAC } from '@/hooks/use-rbac'
 import { AccessDenied } from '@/components/AccessDenied'
 import { RequirePermission } from '@/components/RequirePermission'
 
@@ -23,7 +23,7 @@ export default function SettingsDashboard() {
     restoreLocalSnapshot,
   } = useCrmStore()
   const { toast } = useToast()
-  const { can, permissions } = useRbac()
+  const { can, permissions } = useRBAC()
   const [isRestoring, setIsRestoring] = useState(false)
 
   if (!can('settings', 'visualizar')) return <AccessDenied />
