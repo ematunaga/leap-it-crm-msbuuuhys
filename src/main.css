@@ -4,6 +4,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================
+   LEAP IT - CSS VARIABLES
+   Cores Corporativas: Azul #004066 e Verde #80a327
+   ========================================== */
+:root {
+  /* Cores Primárias Leap IT */
+  --leap-blue: #004066;
+  --leap-blue-light: #0066A3;
+  --leap-blue-dark: #002F4D;
+  
+  --leap-green: #80a327;
+  --leap-green-light: #9ABC3F;
+  --leap-green-dark: #688520;
+  
+  /* Gradientes Leap IT */
+  --leap-gradient-primary: linear-gradient(135deg, var(--leap-blue) 0%, var(--leap-blue-light) 100%);
+  --leap-gradient-secondary: linear-gradient(135deg, var(--leap-green) 0%, var(--leap-green-light) 100%);
+  --leap-gradient-brand: linear-gradient(135deg, var(--leap-blue) 0%, var(--leap-green) 100%);
+  
+  /* Status com identidade Leap IT */
+  --leap-success: var(--leap-green);
+  --leap-warning: #F59E0B;
+  --leap-error: #EF4444;
+  --leap-info: var(--leap-blue-light);
+  
+  /* Atualização das variáveis existentes com cores Leap IT */
+  --primary: 201 83.2% 20%; /* Leap Blue HSL */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 76 58% 40%; /* Leap Green HSL */
+  --secondary-foreground: 0 0% 100%;
+  
+  --accent: 201 100% 32%; /* Leap Blue Light HSL */
+  --accent-foreground: 0 0% 100%;
+}
+
 @layer base {
   :root {
     --background: 210 40% 98%; /* Light gray for high-trust corporate feel */
