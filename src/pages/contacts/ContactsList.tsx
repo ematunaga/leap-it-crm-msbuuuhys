@@ -20,9 +20,9 @@ export default function ContactsList() {
   const [open, setOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const { toast } = useToast()
-  const { can } = useRBAC()
+  const { canView, canCreate, canDelete } = useRBAC()
 
-  if (!can('contacts', 'visualizar')) return <AccessDenied />
+  if (!canView('contacts')) return <AccessDenied />
 
   const columns = [
     {
@@ -91,7 +91,7 @@ export default function ContactsList() {
       key: 'actions',
       label: '',
       render: (_: any, c: Contact) => (
-        <RequirePermission module="contacts" action="excluir">
+        <RequirePermission module="contacts" action="delete">
           <div className="flex justify-end gap-1">
             <Button
               variant="ghost"
@@ -112,7 +112,7 @@ export default function ContactsList() {
   ]
 
   const actions = (
-    <RequirePermission module="contacts" action="criar">
+    <RequirePermission module="contacts" action="create">
       <div className="flex gap-2">
         <Button variant="outline" onClick={() => setImportOpen(true)}>
           <Upload className="mr-2 h-4 w-4" /> Importar Planilha
