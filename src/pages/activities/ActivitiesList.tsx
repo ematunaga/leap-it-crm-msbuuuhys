@@ -19,12 +19,12 @@ import { RequirePermission } from '@/components/RequirePermission'
 export default function ActivitiesList() {
   const { activities, deleteActivity } = useCrmStore()
   const { toast } = useToast()
-  const { can } = useRBAC()
+  const { canView, canCreate, canDelete } = useRBAC()
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<Activity | null>(null)
   const [viewMode, setViewMode] = useState('timeline')
 
-  if (!can('activities', 'visualizar')) return <AccessDenied />
+  if (!canView('activities')) return <AccessDenied />
 
   const handleEdit = (act: Activity) => {
     setEditData(act)
@@ -90,7 +90,7 @@ export default function ActivitiesList() {
               <Edit className="w-4 h-4 text-muted-foreground" />
             </Button>
           </RequirePermission>
-          <RequirePermission module="activities" action="excluir">
+          <RequirePermission module="activities" action="delete">
             <Button
               variant="ghost"
               size="icon"
@@ -121,7 +121,7 @@ export default function ActivitiesList() {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      <RequirePermission module="activities" action="criar">
+      <RequirePermission module="activities" action="create">
         <Button
           onClick={() => {
             setEditData(null)
@@ -200,7 +200,7 @@ export default function ActivitiesList() {
                             <Edit className="w-3.5 h-3.5 text-muted-foreground" />
                           </Button>
                         </RequirePermission>
-                        <RequirePermission module="activities" action="excluir">
+                        <RequirePermission module="activities" action="delete">
                           <Button
                             variant="ghost"
                             size="icon"
