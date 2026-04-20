@@ -72,7 +72,15 @@ export default function Login() {
         <div className="absolute top-0 left-0 w-full h-1 bg-primary" />
         <CardHeader className="text-center space-y-4 pb-8 pt-8">
           <div className="mx-auto bg-primary rounded-xl w-14 h-14 flex items-center justify-center shadow-sm">
-            <Target className="w-8 h-8 text-primary-foreground" />
+                            {/* Logo da Leap IT */}
+                <div className="flex justify-center mb-6">
+                  <img
+                    src="/leap-it-logo.svg"
+                    alt="Leap IT Logo"
+                    className="h-16 w-auto"
+                  />
+                </div><Target className="w-8 h-8 text-primary-foreground" />
+            
           </div>
           <div>
             <CardTitle className="text-2xl font-bold tracking-tight">LEAP IT CRM</CardTitle>
