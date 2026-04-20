@@ -1,6 +1,8 @@
 import { DashboardKPIs } from '@/components/dashboard/DashboardKPIs'
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
+import { SalesFunnelChart } from '@/components/dashboard/SalesFunnelChart'
+import { TeamPerformance } from '@/components/dashboard/TeamPerformance'
 import {
   Select,
   SelectContent,
@@ -34,7 +36,13 @@ export default function Index() {
       </div>
 
       <DashboardKPIs />
-      <DashboardCharts />
+      <40
+        />
+
+              <div className="grid gap-6 md:grid-cols-2">
+        <SalesFunnelChart />
+        <TeamPerformance />
+      </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <CriticalAlerts />
