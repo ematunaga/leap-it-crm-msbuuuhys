@@ -3,6 +3,7 @@ import { DashboardCharts } from '@/components/dashboard/DashboardCharts'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
 import { SalesFunnelChart } from '@/components/dashboard/SalesFunnelChart'
 import { TeamPerformance } from '@/components/dashboard/TeamPerformance'
+import { LeadIntelligence } from '@/components/dashboard/LeadIntelligence'
 import { GlobalFilters } from '@/components/dashboard/GlobalFilters'
 import { DashboardFilterProvider } from '@/contexts/DashboardFilterContext'
 
@@ -21,6 +22,7 @@ export default function Index() {
         </div>
 
         <div className="space-y-6">
+                    <LeadIntelligence />
           <CriticalAlerts />
           <DashboardKPIs />
           <DashboardCharts />
