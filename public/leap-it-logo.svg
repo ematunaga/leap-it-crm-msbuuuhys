@@ -1,0 +1,16 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for icon -->
+  <circle cx="30" cy="30" r="24" fill="#80a327"/>
+  
+  <!-- Leap arrow icon -->
+  <path d="M20 35 L30 20 L40 35 M30 22 L30 40" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- LEAP text -->
+  <text x="65" y="28" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#004066">LEAP</text>
+  
+  <!-- IT text -->
+  <text x="138" y="28" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#80a327">IT</text>
+  
+  <!-- Tagline -->
+  <text x="65" y="45" font-family="Arial, sans-serif" font-size="10" fill="#004066" opacity="0.7">Technology Solutions</text>
+</svg>
