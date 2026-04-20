@@ -2,6 +2,7 @@ import type { Config } from 'tailwindcss'
 import animatePlugin from 'tailwindcss-animate'
 import typographyPlugin from '@tailwindcss/typography'
 import aspectRatioPlugin from '@tailwindcss/aspect-ratio'
+import { leapITTailwindTheme } from './src/lib/theme'
 
 export default {
   darkMode: ['class'],
@@ -20,7 +21,7 @@ export default {
         '2xl': '1400px',
       },
     },
-    extend: {
+    extend:...leapITTailwindTheme.extend,
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
