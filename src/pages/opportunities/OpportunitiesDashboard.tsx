@@ -28,7 +28,7 @@ export default function OpportunitiesDashboard() {
   const { opps, accounts, deleteOpportunity, currencyView, setCurrencyView, ptaxRate, ptaxDate } =
     useCrmStore()
   const { toast } = useToast()
-  const { can } = useRBAC()
+  const { canView, canCreate, canDelete } = useRBAC()
 
   const [year, setYear] = useState<string>('todos')
   const [quarter, setQuarter] = useState<string>('todos')
@@ -99,7 +99,7 @@ export default function OpportunitiesDashboard() {
     }
   }
 
-  if (!can('opportunities', 'visualizar')) return <AccessDenied />
+  if (!canView('opportunities')) return <AccessDenied />
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -155,7 +155,7 @@ export default function OpportunitiesDashboard() {
                 <SelectItem value="Q4">Q4 (Out-Dez)</SelectItem>
               </SelectContent>
             </Select>
-            <RequirePermission module="opportunities" action="criar">
+            <RequirePermission module="opportunities" action="create">
               <Button
                 onClick={() => {
                   setEditOpp(null)
@@ -348,7 +348,7 @@ export default function OpportunitiesDashboard() {
                                 <Edit className="w-4 h-4 text-muted-foreground" />
                               </Button>
                             </RequirePermission>
-                            <RequirePermission module="opportunities" action="excluir">
+                            <RequirePermission module="opportunities" action="delete">
                               <Button
                                 variant="ghost"
                                 size="icon"
