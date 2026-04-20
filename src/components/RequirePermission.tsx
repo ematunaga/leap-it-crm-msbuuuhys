@@ -16,10 +16,9 @@ export function RequirePermission({
 }: Props) {
   const { hasPermission, loading } = useRBAC()
 
-  // Aguarda perfil RBAC carregar — exibe spinner neutro
-  // Validação final de permissão acontece no servidor via RLS
+  // Aguarda perfil RBAC carregar — retorna null (tela em branco) sem expor o conteudo
   if (loading) {
-    return <>{children}</>
+    return null
   }
 
   if (!hasPermission(resource, action)) {
