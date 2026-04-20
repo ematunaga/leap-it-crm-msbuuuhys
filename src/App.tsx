@@ -104,7 +104,7 @@ const App = () => (
                   path="contas"
                   element={
                     <ProtectedPermissionRoute
-                      resource="contas"
+                      resource="accounts"
                       element={<AccountsList />}
                     />
                   }
@@ -113,7 +113,7 @@ const App = () => (
                   path="contas/:id"
                   element={
                     <ProtectedPermissionRoute
-                      resource="contas"
+                      resource="accounts"
                       element={<AccountDetail />}
                     />
                   }
@@ -122,7 +122,7 @@ const App = () => (
                   path="filiais"
                   element={
                     <ProtectedPermissionRoute
-                      resource="contas"
+                      resource="accounts"
                       element={<BranchesReport />}
                     />
                   }
@@ -133,7 +133,7 @@ const App = () => (
                   path="contatos"
                   element={
                     <ProtectedPermissionRoute
-                      resource="contatos"
+                      resource="contacts"
                       element={<ContactsList />}
                     />
                   }
@@ -142,7 +142,7 @@ const App = () => (
                   path="contatos/:id"
                   element={
                     <ProtectedPermissionRoute
-                      resource="contatos"
+                      resource="contacts"
                       element={<ContactDetail />}
                     />
                   }
@@ -164,7 +164,7 @@ const App = () => (
                   path="oportunidades"
                   element={
                     <ProtectedPermissionRoute
-                      resource="oportunidades"
+                      resource="opportunities"
                       element={<OpportunitiesDashboard />}
                     />
                   }
@@ -173,7 +173,7 @@ const App = () => (
                   path="oportunidades/:id"
                   element={
                     <ProtectedPermissionRoute
-                      resource="oportunidades"
+                      resource="opportunities"
                       element={<OpportunityDetail />}
                     />
                   }
@@ -184,7 +184,7 @@ const App = () => (
                   path="atividades"
                   element={
                     <ProtectedPermissionRoute
-                      resource="atividades"
+                      resource="activities"
                       element={<ActivitiesList />}
                     />
                   }
@@ -193,7 +193,7 @@ const App = () => (
                   path="atividades/:id"
                   element={
                     <ProtectedPermissionRoute
-                      resource="atividades"
+                      resource="activities"
                       element={<ActivityDetail />}
                     />
                   }
@@ -215,7 +215,7 @@ const App = () => (
                   path="campanhas"
                   element={
                     <ProtectedPermissionRoute
-                      resource="campanhas"
+                      resource="campaigns"
                       element={<GenericListWrapper />}
                     />
                   }
@@ -226,7 +226,7 @@ const App = () => (
                   path="propostas"
                   element={
                     <ProtectedPermissionRoute
-                      resource="propostas"
+                      resource="proposals"
                       element={<GenericListWrapper />}
                     />
                   }
@@ -237,7 +237,7 @@ const App = () => (
                   path="relatorios"
                   element={
                     <ProtectedPermissionRoute
-                      resource="relatorios"
+                      resource="reports"
                       element={<GenericListWrapper />}
                     />
                   }
