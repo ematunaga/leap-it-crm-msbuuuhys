@@ -63,7 +63,7 @@ function ProtectedPermissionRoute({
 // Componente que redireciona SDR para /leads ao tentar acessar o Dashboard
 function DashboardRoute() {
   const { profile, loading } = useRBAC()
-  if (loading) return null
+  if (loading) return <Navigate to="/" replace />
   // SDR nao tem acesso ao dashboard - redireciona para leads
   if (profile && profile.name === 'SDR') {
     return <Navigate to="/leads" replace />
@@ -248,7 +248,7 @@ const App = () => (
                   path="contratos"
                   element={
                     <ProtectedPermissionRoute
-                      resource="contratos"
+                      resource="contracts"
                       element={<GenericListWrapper />}
                     />
                   }
@@ -259,7 +259,7 @@ const App = () => (
                   path="concorrentes"
                   element={
                     <ProtectedPermissionRoute
-                      resource="concorrentes"
+                      resource="competitors"
                       element={<GenericListWrapper />}
                     />
                   }
