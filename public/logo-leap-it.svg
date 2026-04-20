@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <!-- Leap IT CRM Logo - Placeholder -->
+  <rect width="200" height="60" fill="#004066" rx="4"/>
+  <text x="100" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#80a327" text-anchor="middle" dominant-baseline="middle">
+    LEAP IT
+  </text>
+  <text x="100" y="48" font-family="Arial, sans-serif" font-size="10" fill="#FFFFFF" text-anchor="middle">
+    CRM SYSTEM
+  </text>
+</svg>
