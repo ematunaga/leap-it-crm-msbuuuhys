@@ -23,10 +23,10 @@ export default function SettingsDashboard() {
     restoreLocalSnapshot,
   } = useCrmStore()
   const { toast } = useToast()
-  const { can, permissions } = useRBAC()
+  const { canView, permissions } = useRBAC()
   const [isRestoring, setIsRestoring] = useState(false)
 
-  if (!can('settings', 'visualizar')) return <AccessDenied />
+  if (!canView('settings')) return <AccessDenied />
 
   const handleRestoreFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -160,7 +160,7 @@ export default function SettingsDashboard() {
                   </div>
                   <RequirePermission
                     module="settings"
-                    action="exportar"
+                    action="export"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Você não possui permissão para exportar dados.
@@ -214,7 +214,7 @@ export default function SettingsDashboard() {
                   </div>
                   <RequirePermission
                     module="settings"
-                    action="exportar"
+                    action="export"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Acesso restrito a administradores.
@@ -242,7 +242,7 @@ export default function SettingsDashboard() {
                   </div>
                   <RequirePermission
                     module="settings"
-                    action="exportar"
+                    action="export"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Acesso restrito a administradores.
@@ -279,7 +279,7 @@ export default function SettingsDashboard() {
                   </div>
                   <RequirePermission
                     module="settings"
-                    action="exportar"
+                    action="export"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Acesso restrito a administradores.
