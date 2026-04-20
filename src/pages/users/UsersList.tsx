@@ -15,13 +15,13 @@ import { AccessDenied } from '@/components/AccessDenied'
 export default function UsersList() {
   const { users, profiles, deleteUser, syncWithPricingApp } = useCrmStore()
   const { toast } = useToast()
-  const { can } = useRBAC() // ✅ novo hook
+  const { canView } = useRBAC() // ✅ novo hook
   const [open, setOpen] = useState(false)
   const [editData, setEditData] = useState<AppUser | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
 
   // ✅ usa can() em vez de permissions.settings
-  if (!can('settings', 'manage_users')) return <AccessDenied />
+  if (!canView('settings')) return <AccessDenied />
 
   const handleEdit = (u: AppUser) => {
     setEditData(u)
