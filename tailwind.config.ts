@@ -25,6 +25,21 @@ export default {
         sans: ['Inter', 'sans-serif'],
       },
       colors: {
+                // Leap IT Brand Colors
+        'leap-orange': {
+          DEFAULT: '#F69139',
+          light: '#FFA95C',
+          dark: '#E57D1F',
+        },
+        'leap-navy': {
+          DEFAULT: '#1E365E',
+          light: '#2A4A7C',
+          dark: '#152640',
+        },
+        'leap-blue': {
+          DEFAULT: '#0060A9',
+          light: '#9DC0E4',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
