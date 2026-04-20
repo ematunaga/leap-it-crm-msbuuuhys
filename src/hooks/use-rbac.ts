@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react'
 import { useAuth } from './use-auth'
 import { supabase } from '@/lib/supabase/client'
 
+// ============================================================
+// CONVENCAO DE NOMENCLATURA
+// - resource: chave em ingles alinhada ao schema do banco
+//   ex: 'accounts', 'contacts', 'opportunities', 'activities'
+// - action: sempre em ingles: 'view' | 'create' | 'edit' | 'delete'
+// - A UI exibe rotulos em PT-BR, mas a logica usa ingles
+// ============================================================
+
+export type Action = 'view' | 'create' | 'edit' | 'delete'
+
 export type Permission = {
   resource: string
   actions: {
@@ -12,12 +22,11 @@ export type Permission = {
   }
 }
 
-// Tipo que corresponde ao banco de dados
 export type AccessProfile = {
   id: string
-  name: string // Alinhado com o banco
-  description: string // Alinhado com o banco  
-  permissions: Record<string, Permission> // Alinhado com o banco
+  name: string
+  description: string
+  permissions: Record<string, Permission>
   type: string
   status: string
   created_at: string
@@ -35,14 +44,13 @@ export const useRBAC = () => {
       setLoading(false)
       return
     }
-
     loadUserProfile()
   }, [user])
 
   const loadUserProfile = async () => {
     try {
       setLoading(true)
-      
+
       const { data: userData, error: userError } = await supabase
         .from('app_users')
         .select('access_profile_id')
@@ -51,16 +59,20 @@ export const useRBAC = () => {
 
       if (userError) throw userError
 
-      if (userData?.access_profile_id) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('access_profiles')
-          .select('*')
-          .eq('id', userData.access_profile_id)
-          .single()
-
-        if (profileError) throw profileError
-        setProfile(profileData)
+      if (!userData?.access_profile_id) {
+        console.warn('Usuario sem access_profile_id - sem permissoes')
+        setLoading(false)
+        return
       }
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('access_profiles')
+        .select('*')
+        .eq('id', userData.access_profile_id)
+        .single()
+
+      if (profileError) throw profileError
+      setProfile(profileData)
     } catch (error) {
       console.error('Erro ao carregar perfil de acesso:', error)
     } finally {
@@ -68,33 +80,35 @@ export const useRBAC = () => {
     }
   }
 
-  const hasPermission = (
-    resource: string,
-    action: 'view' | 'create' | 'edit' | 'delete'
-  ): boolean => {
+  /**
+   * Verifica permissao para um recurso e acao.
+   * @param resource  Chave em ingles (ex: 'accounts', 'contacts')
+   * @param action    Acao em ingles (ex: 'view', 'create', 'edit', 'delete')
+   */
+  const hasPermission = (resource: string, action: Action): boolean => {
     if (!profile) return false
-    
-    // Admin tem acesso total
+
+    // Administrador Global tem acesso irrestrito
     if (profile.name === 'Administrador Global') return true
 
     const permission = profile.permissions?.[resource]
     if (!permission) return false
 
-    // Mapeia ações inglês -> português conforme estrutura do Supabase
-    const actionMap: Record<string, string> = {
-      view: 'visualizar',
-      create: 'criar',
-      edit: 'editar',
-      delete: 'excluir'
-    }
-    
-    const ptAction = actionMap[action]
-    return permission[ptAction] === true  }
+    return permission.actions?.[action] === true
+  }
 
-  const canView = (resource: string) => hasPermission(resource, 'view')
+  // Atalhos semanticos
+  const canView   = (resource: string) => hasPermission(resource, 'view')
   const canCreate = (resource: string) => hasPermission(resource, 'create')
-  const canEdit = (resource: string) => hasPermission(resource, 'edit')
+  const canEdit   = (resource: string) => hasPermission(resource, 'edit')
   const canDelete = (resource: string) => hasPermission(resource, 'delete')
+
+  /**
+   * Alias de hasPermission - mantido para compatibilidade com paginas
+   * que chamam can(resource, action) diretamente.
+   * Aceita APENAS acoes em ingles.
+   */
+  const can = (resource: string, action: Action) => hasPermission(resource, action)
 
   const isAdmin = () => profile?.name === 'Administrador Global' || false
 
@@ -102,11 +116,12 @@ export const useRBAC = () => {
     profile,
     loading,
     hasPermission,
+    can,
     canView,
     canCreate,
     canEdit,
     canDelete,
     isAdmin,
-    refresh: loadUserProfile
+    refresh: loadUserProfile,
   }
 }
