@@ -38,12 +38,12 @@ const stageLabels: Record<string, string> = {
 export default function PipelineBoard() {
   const { opps, updateOppStage, currencyView, setCurrencyView, ptaxRate, ptaxDate } = useCrmStore()
   const [openOpp, setOpenOpp] = useState(false)
-  const { can } = useRBAC()
+  const { canView, canCreate, canDelete, canEdit } = useRBAC()
   const { toast } = useToast()
 
-  if (!can('opportunities', 'visualizar')) return <AccessDenied />
+  if (!canView('opportunities')) return <AccessDenied />
 
-  const canEdit = can('opportunities', 'editar')
+  const canEdit = canEdit('opportunities')
 
   const handleDropSafe = (id: string, stage: string) => {
     if (!canEdit) {
@@ -87,7 +87,7 @@ export default function PipelineBoard() {
                 USD
               </Button>
             </div>
-            <RequirePermission module="opportunities" action="criar">
+            <RequirePermission module="opportunities" action="create">
               <Dialog open={openOpp} onOpenChange={setOpenOpp}>
                 <DialogTrigger asChild>
                   <Button>
