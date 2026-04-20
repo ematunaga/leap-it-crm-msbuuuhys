@@ -153,7 +153,7 @@ const App = () => (
                   path="pipeline"
                   element={
                     <ProtectedPermissionRoute
-                      resource="pipeline"
+                      resource="opportunities"
                       element={<PipelineBoard />}
                     />
                   }
@@ -270,16 +270,16 @@ const App = () => (
                   path="usuarios"
                   element={
                     <ProtectedPermissionRoute
-                      resource="configuracoes"
+                      resource="settings"
                       element={<UsersList />}
                     />
                   }
                 />
                 <Route
-                  path="configuracoes"
+                  path="settings"
                   element={
                     <ProtectedPermissionRoute
-                      resource="configuracoes"
+                      resource="settings"
                       element={<SettingsDashboard />}
                     />
                   }
@@ -288,7 +288,7 @@ const App = () => (
                   path="auditoria"
                   element={
                     <ProtectedPermissionRoute
-                      resource="configuracoes"
+                      resource="settings"
                       element={<GenericListWrapper />}
                     />
                   }
