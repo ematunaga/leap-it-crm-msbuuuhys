@@ -19,9 +19,9 @@ export default function AccountsList() {
   const [open, setOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const { toast } = useToast()
-  const { can } = useRBAC()
+    const { canView, canCreate, canDelete } = useRBAC()
 
-  if (!can('accounts', 'visualizar')) return <AccessDenied />
+    if (!canView('accounts')) return <AccessDenied />
 
   const columns = [
     {
@@ -113,7 +113,7 @@ export default function AccountsList() {
       key: 'actions',
       label: '',
       render: (_: any, acc: Account) => (
-        <RequirePermission module="accounts" action="excluir">
+        <RequirePermission module="accounts" action="delete">
           <div className="flex justify-end gap-1">
             <Button
               variant="ghost"
@@ -138,7 +138,7 @@ export default function AccountsList() {
   ]
 
   const actions = (
-    <RequirePermission module="accounts" action="criar">
+    <RequirePermission module="accounts" action="create">
       <div className="flex gap-2">
         <Button variant="outline" onClick={() => setImportOpen(true)}>
           <Upload className="mr-2 h-4 w-4" /> Importar Planilha
