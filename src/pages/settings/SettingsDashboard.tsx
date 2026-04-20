@@ -23,7 +23,7 @@ export default function SettingsDashboard() {
     restoreLocalSnapshot,
   } = useCrmStore()
   const { toast } = useToast()
-  const { canView, permissions } = useRBAC()
+  const { canView, isAdmin, profile } = useRBAC()
   const [isRestoring, setIsRestoring] = useState(false)
 
   if (!canView('settings')) return <AccessDenied />
@@ -108,7 +108,7 @@ export default function SettingsDashboard() {
   }
 
   const canManageProfiles =
-    !!permissions.settings?.gerenciar_perfis || permissions?.settings?.gerenciar_usuarios
+    isAdmin() || !!profile?.permissions?.settings?.manage_profiles || !!profile?.permissions?.settings?.manage_users
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -159,8 +159,8 @@ export default function SettingsDashboard() {
                     </p>
                   </div>
                   <RequirePermission
-                    module="settings"
-                    action="export"
+                    resource="settings"
+                    action="create"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Você não possui permissão para exportar dados.
@@ -213,8 +213,8 @@ export default function SettingsDashboard() {
                     </p>
                   </div>
                   <RequirePermission
-                    module="settings"
-                    action="export"
+                    resource="settings"
+                    action="create"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Acesso restrito a administradores.
@@ -241,8 +241,8 @@ export default function SettingsDashboard() {
                     </p>
                   </div>
                   <RequirePermission
-                    module="settings"
-                    action="export"
+                    resource="settings"
+                    action="create"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Acesso restrito a administradores.
@@ -278,8 +278,8 @@ export default function SettingsDashboard() {
                     </p>
                   </div>
                   <RequirePermission
-                    module="settings"
-                    action="export"
+                    resource="settings"
+                    action="create"
                     fallback={
                       <p className="text-xs text-muted-foreground mt-2 italic">
                         Acesso restrito a administradores.
