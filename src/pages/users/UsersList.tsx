@@ -21,7 +21,7 @@ export default function UsersList() {
   const [isSyncing, setIsSyncing] = useState(false)
 
   // ✅ usa can() em vez de permissions.settings
-  if (!can('settings', 'gerenciar_usuarios')) return <AccessDenied />
+  if (!can('settings', 'manage_users')) return <AccessDenied />
 
   const handleEdit = (u: AppUser) => {
     setEditData(u)
