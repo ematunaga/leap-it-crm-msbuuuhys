@@ -38,7 +38,7 @@ const stageLabels: Record<string, string> = {
 export default function PipelineBoard() {
   const { opps, updateOppStage, currencyView, setCurrencyView, ptaxRate, ptaxDate } = useCrmStore()
   const [openOpp, setOpenOpp] = useState(false)
-  const { canView, canCreate, canDelete } = useRBAC()   const canEditOpp = canEdit('opportunities')
+  const { canView, canCreate, canDelete, canEdit: checkCanEdit } = useRBAC()
   const { toast } = useToast()
 
   if (!canView('opportunities')) return <AccessDenied />
