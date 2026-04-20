@@ -73,7 +73,7 @@ const navigation: NavGroup[] = [
   {
     title: 'Administracao',
     items: [
-      { title: 'Usuarios',      url: '/usuarios',      icon: Users,       resource: 'settings' },
+            { title: 'Usuarios',       url: '/usuarios',       icon: Users,       resource: 'users' },
       { title: 'Configuracoes', url: '/configuracoes', icon: Settings,    resource: 'settings' },
       { title: 'Auditoria',     url: '/auditoria',     icon: ShieldCheck, resource: 'settings' },
     ],
