@@ -18,7 +18,8 @@ export function RequirePermission({
 
   /P/ermissive durante carregamento - evita tela branca
   if (loading) {
-    return <>{children}</>  }
+    return <>{children}</>
+      }
 
   if (!hasPermission(resource, action)) {
     return <>{fallback}</>
