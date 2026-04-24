@@ -16,7 +16,7 @@ export function RequirePermission({
 }: Props) {
   const { hasPermission, loading } = useRBAC()
 
-  /Permissive durante carregamento - evita tela branca
+  /P/ermissive durante carregamento - evita tela branca
   if (loading) {
     return <>{children}</>  }
 
