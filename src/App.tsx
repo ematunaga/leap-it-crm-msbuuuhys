@@ -12,6 +12,7 @@ import BranchesReport from './pages/accounts/BranchesReport'
 import ContactsList from './pages/contacts/ContactsList'
 import ContactDetail from './pages/contacts/ContactDetail'
 import PipelineBoard from './pages/pipeline/PipelineBoard'
+import ForecastReport from './pages/pipeline/ForecastReport'
 import OpportunitiesDashboard from './pages/opportunities/OpportunitiesDashboard'
 import OpportunityDetail from './pages/opportunities/OpportunityDetail'
 import ActivitiesList from './pages/activities/ActivitiesList'
@@ -267,6 +268,15 @@ const App = () => (
                   }
                 />
 
+                <Route
+                  path="forecast"
+                  element={
+                    <ProtectedPermissionRoute
+                      resource="opportunities"
+                      element={<ForecastReport />}
+                    />
+                  }
+                />
                 {/* Administração */}
                 <Route
                   path="usuarios"
