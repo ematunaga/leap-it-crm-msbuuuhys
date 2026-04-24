@@ -16,11 +16,10 @@ export function RequirePermission({
 }: Props) {
   const { hasPermission, loading } = useRBAC()
 
-  /P/ermissive durante carregamento - evita tela branca
+  // While loading permissions, show content to prevent blank screen
   if (loading) {
     return <>{children}</>
       }
-
   if (!hasPermission(resource, action)) {
     return <>{fallback}</>
   }
