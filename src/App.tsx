@@ -18,6 +18,8 @@ import ActivitiesList from './pages/activities/ActivitiesList'
 import ActivityDetail from './pages/activities/ActivityDetail'
 import LeadsList from './pages/leads/LeadsList'
 import GenericListWrapper from './pages/shared/GenericListWrapper'
+import ContractsList from './pages/contracts/ContractsList'
+import CompetitorsList from './pages/competitors/CompetitorsList'
 import SettingsDashboard from './pages/settings/SettingsDashboard'
 import UsersList from './pages/users/UsersList'
 import UserProfile from './pages/settings/UserProfile'
@@ -249,7 +251,7 @@ const App = () => (
                   element={
                     <ProtectedPermissionRoute
                       resource="contracts"
-                      element={<GenericListWrapper />}
+                      element={<ContractsList />}
                     />
                   }
                 />
@@ -260,7 +262,7 @@ const App = () => (
                   element={
                     <ProtectedPermissionRoute
                       resource="competitors"
-                      element={<GenericListWrapper />}
+                      element={<CompetitorsList />}
                     />
                   }
                 />
