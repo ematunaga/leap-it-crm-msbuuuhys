@@ -16,10 +16,9 @@ export function RequirePermission({
 }: Props) {
   const { hasPermission, loading } = useRBAC()
 
-  // Aguarda perfil RBAC carregar — retorna null (tela em branco) sem expor o conteudo
+  /Permissive durante carregamento - evita tela branca
   if (loading) {
-    return null
-  }
+    return <>{children}</>  }
 
   if (!hasPermission(resource, action)) {
     return <>{fallback}</>
