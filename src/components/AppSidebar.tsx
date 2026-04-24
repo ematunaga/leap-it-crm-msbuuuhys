@@ -27,6 +27,7 @@ import {
   FileSignature,
   Settings,
   ShieldCheck,
+  TrendingUp,
 } from 'lucide-react'
 
 interface NavItem {
