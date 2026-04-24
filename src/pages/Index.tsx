@@ -1,6 +1,8 @@
 import { DashboardKPIs } from '@/components/dashboard/DashboardKPIs'
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts'
 import { CriticalAlerts } from '@/components/dashboard/CriticalAlerts'
+import { InactivityAlerts } from '@/components/intelligence/InactivityAlerts'
+import { WhiteSpaceAnalysis } from '@/components/intelligence/WhiteSpaceAnalysis'
 import {
   Select,
   SelectContent,
@@ -35,18 +37,11 @@ export default function Index() {
 
       <DashboardKPIs />
       <DashboardCharts />
+      <CriticalAlerts />
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <CriticalAlerts />
-        <div
-          className="md:col-span-2 bg-card rounded-xl border p-6 shadow-subtle flex flex-col justify-center items-center animate-fade-in-up"
-          style={{ animationDelay: '700ms' }}
-        >
-          <h3 className="font-semibold text-lg mb-2">Espaço para Widgets Customizados</h3>
-          <p className="text-sm text-muted-foreground text-center">
-            Configure mais visões do MEDDIC ou Campanhas aqui através das configurações do painel.
-          </p>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <InactivityAlerts />
+        <WhiteSpaceAnalysis />
       </div>
     </div>
   )
