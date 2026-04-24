@@ -1,3 +1,4 @@
+import { MarginCalculator } from '@/components/intelligence/MarginCalculator'
 import { useParams, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -541,6 +542,7 @@ export default function OpportunityDetail() {
           </Card>
         </TabsContent>
       </Tabs>
+                {opp && <MarginCalculator opportunity={opp} onUpdate={(fields) => updateOpp(opp.id, fields)} readOnly={!canEdit} />}
     </div>
   )
 }
